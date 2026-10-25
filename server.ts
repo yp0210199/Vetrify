@@ -13,7 +13,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Enable CORS for Vercel deployment (https://rxomni.vercel.app) and local development
+// Enable CORS for Vercel deployment (https://vetrify.vercel.app) and local development
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 // Load Firebase configuration for REST API verification if needed
 let firebaseApiKey = process.env.VITE_FIREBASE_API_KEY || 'AIzaSyBWggbiS3CX608kJRGqI5kvSIQ3TVyKwqc';
 let firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || 'rx-omni';
-let firestoreDatabaseId = 'ai-studio-rxomni-b04852b7-d371-44ea-94b4-f03ce3a9ab68';
+let firestoreDatabaseId = 'ai-studio-vetrify-c2b535f6-47e6-41dc-aa6f-73bb27d55e5a';
 
 try {
   const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
