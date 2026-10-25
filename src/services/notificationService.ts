@@ -21,6 +21,7 @@ import {
   NotificationUpdatePayload,
 } from '../types/firestore';
 import { validateNotification } from '../lib/firebase/validators';
+import { parseFirestoreTimestamp } from '../lib/formatting/formatters';
 
 export const notificationService = {
   /**
@@ -94,19 +95,25 @@ export const notificationService = {
     limitCount: number = 30
   ): Promise<Notification[]> {
     const notifsRef = this.getNotificationsRef(orgId);
-    // Query notifications where recipientUid is 'all' OR matches current user UID
     const q = query(
       notifsRef,
       where('recipientUid', 'in', [uid, 'all']),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
+      limit(limitCount * 2)
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    const list = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...(docSnap.data() as Record<string, any>),
     })) as Notification[];
+
+    return list
+      .sort((a, b) => {
+        const timeA = parseFirestoreTimestamp(a.createdAt)?.getTime() || 0;
+        const timeB = parseFirestoreTimestamp(b.createdAt)?.getTime() || 0;
+        return timeB - timeA;
+      })
+      .slice(0, limitCount);
   },
 
   /**
@@ -123,8 +130,7 @@ export const notificationService = {
     const q = query(
       notifsRef,
       where('recipientUid', 'in', [uid, 'all']),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
+      limit(limitCount * 2)
     );
 
     return onSnapshot(
@@ -134,7 +140,14 @@ export const notificationService = {
           id: docSnap.id,
           ...(docSnap.data() as Record<string, any>),
         })) as Notification[];
-        onNext(list);
+        const sorted = list
+          .sort((a, b) => {
+            const timeA = parseFirestoreTimestamp(a.createdAt)?.getTime() || 0;
+            const timeB = parseFirestoreTimestamp(b.createdAt)?.getTime() || 0;
+            return timeB - timeA;
+          })
+          .slice(0, limitCount);
+        onNext(sorted);
       },
       (err) => {
         console.error(`Error subscribing to notifications for org ${orgId}:`, err);
@@ -163,22 +176,26 @@ export const notificationService = {
     const notifsRef = this.getNotificationsRef(orgId);
     const q = query(
       notifsRef,
-      where('recipientUid', 'in', [uid, 'all']),
-      where('read', '==', false)
+      where('recipientUid', 'in', [uid, 'all'])
     );
-
     const snapshot = await getDocs(q);
     if (snapshot.empty) return;
 
     const batch = writeBatch(db);
+    let count = 0;
     snapshot.docs.forEach((docSnap) => {
-      batch.update(docSnap.ref, {
-        read: true,
-        readAt: serverTimestamp(),
-      });
+      const data = docSnap.data() as Notification;
+      if (!data.read) {
+        batch.update(docSnap.ref, {
+          read: true,
+          readAt: serverTimestamp(),
+        });
+        count++;
+      }
     });
-
-    await batch.commit();
+    if (count > 0) {
+      await batch.commit();
+    }
   },
 
   /**
@@ -198,19 +215,23 @@ export const notificationService = {
     const notifsRef = this.getNotificationsRef(orgId);
     const q = query(
       notifsRef,
-      where('recipientUid', 'in', [uid, 'all']),
-      where('read', '==', true)
+      where('recipientUid', 'in', [uid, 'all'])
     );
-
     const snapshot = await getDocs(q);
     if (snapshot.empty) return;
 
     const batch = writeBatch(db);
+    let count = 0;
     snapshot.docs.forEach((docSnap) => {
-      batch.delete(docSnap.ref);
+      const data = docSnap.data() as Notification;
+      if (data.read) {
+        batch.delete(docSnap.ref);
+        count++;
+      }
     });
-
-    await batch.commit();
+    if (count > 0) {
+      await batch.commit();
+    }
   },
 
   /**
@@ -220,12 +241,11 @@ export const notificationService = {
     const notifsRef = this.getNotificationsRef(orgId);
     const q = query(
       notifsRef,
-      where('recipientUid', 'in', [uid, 'all']),
-      where('read', '==', false)
+      where('recipientUid', 'in', [uid, 'all'])
     );
-
     const snapshot = await getDocs(q);
-    return snapshot.size;
+    const list = snapshot.docs.map((docSnap) => docSnap.data() as Notification);
+    return list.filter((n) => !n.read).length;
   },
 
   /**

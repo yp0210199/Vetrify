@@ -93,11 +93,21 @@ export const TextInput: React.FC<TextInputProps> = ({
   ...props
 }) => {
   const safeProps = cleanInputProps(props);
+  const renderIcon = (iconNode: React.ReactNode) => {
+    if (!iconNode) return null;
+    if (React.isValidElement(iconNode)) return iconNode;
+    if (typeof iconNode === 'function' || typeof iconNode === 'object') {
+      const IconComp = iconNode as React.ElementType;
+      return <IconComp className="w-4 h-4" />;
+    }
+    return iconNode;
+  };
+
   return (
     <div className="relative flex items-center w-full">
       {icon && iconPosition === 'left' && (
         <div className="absolute left-3 text-[#64748B] pointer-events-none flex items-center justify-center">
-          {icon}
+          {renderIcon(icon)}
         </div>
       )}
       <input
@@ -110,7 +120,7 @@ export const TextInput: React.FC<TextInputProps> = ({
       />
       {icon && iconPosition === 'right' && (
         <div className="absolute right-3 text-[#64748B] pointer-events-none flex items-center justify-center">
-          {icon}
+          {renderIcon(icon)}
         </div>
       )}
     </div>

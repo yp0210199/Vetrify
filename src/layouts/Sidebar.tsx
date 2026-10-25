@@ -40,6 +40,7 @@ interface SidebarProps {
   storeLocation?: string;
   userName?: string;
   userRole?: string;
+  userAvatarUrl?: string;
   onOpenStoreSelector?: () => void;
   onOpenProfile?: () => void;
 }
@@ -54,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   storeLocation = 'Gurugram, Haryana',
   userName = 'Admin User',
   userRole = 'Owner',
+  userAvatarUrl,
   onOpenStoreSelector,
   onOpenProfile,
 }) => {
@@ -310,8 +312,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onOpenProfile}
           className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-[#132C46] transition-colors cursor-pointer group"
         >
-          <div className="w-7 h-7 rounded-lg bg-[#0D5C63] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-            {(userName && userName.length > 0 ? userName[0] : 'U').toUpperCase()}
+          <div className="w-7 h-7 rounded-lg bg-[#0D5C63] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden border border-[#183654]">
+            {userAvatarUrl ? (
+              <img
+                src={userAvatarUrl}
+                alt={userName || 'User Avatar'}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              (userName && userName.length > 0 ? userName[0] : 'U').toUpperCase()
+            )}
           </div>
           {!isCollapsed && (
             <div className="overflow-hidden flex-1">

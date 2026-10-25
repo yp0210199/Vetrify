@@ -124,25 +124,16 @@ export const dashboardService = {
     }
 
     const startTimestamp = Timestamp.fromDate(startDate);
+    const canUseInQuery = false;
 
     try {
-      // 1. Fetch Invoices (Sales) for the date range
+      // 1. Fetch Invoices (Sales) for the date range without composite index requirement
       const invoicesPath = `organizations/${organizationId}/invoices`;
-      let invoicesQuery = query(
+      const invoicesQuery = query(
         collection(db, 'organizations', organizationId, 'invoices'),
-        where('createdAt', '>=', startTimestamp)
+        orderBy('createdAt', 'desc'),
+        limit(500)
       );
-
-      // In Firestore, if storeIds has elements and is <= 30, we can use 'in' operator
-      // If storeIds has many elements, we filter in memory to stay secure and fast
-      const canUseInQuery = storeIds.length > 0 && storeIds.length <= 30;
-      if (canUseInQuery) {
-        invoicesQuery = query(
-          collection(db, 'organizations', organizationId, 'invoices'),
-          where('storeId', 'in', storeIds),
-          where('createdAt', '>=', startTimestamp)
-        );
-      }
 
       let invoicesSnapshot;
       try {
@@ -152,11 +143,13 @@ export const dashboardService = {
         throw err;
       }
 
-      // Filter in-memory if query was not filtered (to be defensive & support larger lists safely)
       let invoices = invoicesSnapshot.docs.map((d) => d.data() as SaleInvoice);
-      if (!canUseInQuery) {
-        invoices = invoices.filter((inv) => storeIds.includes(inv.storeId));
-      }
+      const startTime = startDate.getTime();
+      invoices = invoices.filter((inv) => {
+        const invTime = parseFirestoreTimestamp(inv.createdAt)?.getTime() || 0;
+        const matchesStore = storeIds.includes(inv.storeId);
+        return invTime >= startTime && matchesStore;
+      });
 
       // Filter active invoices (exclude voided)
       const activeInvoices = invoices.filter((inv) => inv.status !== 'voided');

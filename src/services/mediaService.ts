@@ -83,12 +83,66 @@ export const mediaService = {
   },
 
   /**
+   * Backup Server-Side Proxy Upload via POST /api/media/upload-proxy
+   * Route file uploads through backend when direct client-to-ImageKit XHR is blocked by CORS/network policy.
+   */
+  async uploadViaServerProxy(options: {
+    organizationId: string;
+    storeId?: string | null;
+    category: MediaCategory;
+    file: File;
+    userToken: string;
+    onProgress?: (percent: number) => void;
+  }): Promise<any> {
+    options.onProgress?.(20);
+
+    const fileBase64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(options.file);
+    });
+
+    options.onProgress?.(50);
+
+    const res = await fetch('/api/media/upload-proxy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${options.userToken}`,
+      },
+      body: JSON.stringify({
+        organizationId: options.organizationId,
+        storeId: options.storeId || null,
+        category: options.category,
+        fileBase64,
+        originalFilename: options.file.name,
+      }),
+    });
+
+    if (!res.ok) {
+      let errData: any = {};
+      try {
+        errData = await res.json();
+      } catch (_) {}
+      throw new AppError({
+        code: 'PROXY_UPLOAD_FAILED',
+        message: errData.error || 'Server proxy upload to ImageKit failed',
+      });
+    }
+
+    options.onProgress?.(90);
+    return await res.json();
+  },
+
+  /**
    * High-Level Secure Upload Flow:
    * 1. Validate file constraints against category limits
    * 2. Request backend authentication parameters (ImageKit)
-   * 3. Upload directly to ImageKit or fallback to optimized direct client storage
-   * 4. Save Firestore media document reference
-   * 5. Record Audit Event
+   * 3. Upload directly to ImageKit or fallback to server proxy upload
+   * 4. Enforce authentic ImageKit CDN URLs (Base64 storage strictly disabled)
+   * 5. Save Firestore media document reference
+   * 6. Record Audit Event
    */
   async uploadAsset(options: UploadAssetOptions): Promise<MediaUploadResult> {
     const {
@@ -115,7 +169,7 @@ export const mediaService = {
 
     let authRes: ImageKitAuthResponse | null = null;
     try {
-      // 2. Request Backend Signature
+      // 2. Request Backend Signature for Direct Client Upload
       authRes = await this.requestUploadSignature({
         organizationId,
         storeId,
@@ -126,109 +180,42 @@ export const mediaService = {
         userToken,
       });
     } catch (err: any) {
-      console.warn('ImageKit authentication params not active, executing direct asset optimization fallback:', err);
+      console.warn('Direct ImageKit auth signature request bypassed or failed, using server proxy upload backup:', err);
     }
 
     let ikRes: any = null;
     if (authRes) {
       try {
-        // 3. Upload directly to ImageKit
+        // 3a. Primary Strategy: Upload directly to ImageKit from client
         ikRes = await imagekitClient.uploadDirectToImageKit(file, authRes, onProgress);
       } catch (err: any) {
-        console.warn('ImageKit direct upload failed, falling back to direct asset optimization:', err);
+        console.warn('Direct client-to-ImageKit upload failed, attempting server proxy upload backup:', err);
       }
     }
 
-    // Direct Image Optimization Fallback (if ImageKit is unconfigured or upload fails)
+    // 3b. Secondary Strategy: Server Proxy Upload Backup (if direct client upload fails or signature fails)
     if (!ikRes) {
       try {
-        onProgress?.(30);
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            if (file.type.startsWith('image/')) {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                const maxDim = 1200;
-                if (width > maxDim || height > maxDim) {
-                  if (width > height) {
-                    height = Math.round((height * maxDim) / width);
-                    width = maxDim;
-                  } else {
-                    width = Math.round((width * maxDim) / height);
-                    height = maxDim;
-                  }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                  ctx.drawImage(img, 0, 0, width, height);
-                  resolve(canvas.toDataURL('image/jpeg', 0.85));
-                } else {
-                  resolve(reader.result as string);
-                }
-              };
-              img.onerror = () => resolve(reader.result as string);
-              img.src = reader.result as string;
-            } else {
-              resolve(reader.result as string);
-            }
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        onProgress?.(80);
-        const mediaId = `media-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-        const nowIso = new Date().toISOString();
-
-        const directAsset: MediaAsset = {
-          id: mediaId,
+        ikRes = await this.uploadViaServerProxy({
           organizationId,
-          storeId: storeId || null,
-          ownerUid: uploadedByUid,
+          storeId,
           category,
-          provider: 'local',
-          resourceType: file.type === 'application/pdf' ? 'raw' : 'image',
-          publicId: `direct-${mediaId}`,
-          fileId: `direct-${mediaId}`,
-          filePath: `/direct/${category}/${file.name}`,
-          url: dataUrl,
-          secureUrl: dataUrl,
-          format: file.type.split('/')[1] || 'jpg',
-          bytes: Math.round(dataUrl.length * 0.75),
-          originalFilename: file.name,
-          folder: `direct/${category}`,
-          createdAt: nowIso,
-        };
-
-        try {
-          const db = getFirestoreDb();
-          const mediaRef = doc(db, 'organizations', organizationId, 'media', mediaId);
-          await setDoc(mediaRef, {
-            ...directAsset,
-            createdAtServer: serverTimestamp(),
-          });
-        } catch (fsErr) {
-          console.warn('Firestore direct asset save warning:', fsErr);
-        }
-
-        onProgress?.(100);
-        return {
-          asset: directAsset,
-          success: true,
-        };
-      } catch (fallbackErr: any) {
-        return {
-          asset: null as any,
-          success: false,
-          error: fallbackErr.message || 'Image processing failed',
-        };
+          file,
+          userToken,
+          onProgress,
+        });
+      } catch (proxyErr: any) {
+        console.error('ImageKit server proxy upload failed:', proxyErr);
       }
+    }
+
+    // 4. Strict Enforcement: Prevent Base64 Persistence in Firestore
+    if (!ikRes || !ikRes.url) {
+      return {
+        asset: null as any,
+        success: false,
+        error: 'Failed to upload image to ImageKit CDN via direct client and server proxy. Base64 fallback storage is disabled to enforce authentic ImageKit CDN URLs.',
+      };
     }
 
     // Prepare Firestore normalized MediaAsset for ImageKit

@@ -11,7 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Enable CORS for Vercel deployment (https://vetrify.vercel.app) and local development
 app.use((req, res, next) => {
@@ -234,6 +235,60 @@ app.post('/api/media/upload-signature', async (req, res) => {
   } catch (err: any) {
     console.error('ImageKit auth endpoint error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error generating ImageKit auth parameters' });
+  }
+});
+
+// 1b. POST /api/media/upload-proxy (Server-side ImageKit Direct Proxy Upload)
+app.post('/api/media/upload-proxy', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+    }
+    const token = authHeader.substring(7);
+    const authUser = await verifyFirebaseToken(token);
+    if (!authUser) {
+      return res.status(401).json({ error: 'Unauthorized or expired Firebase ID token' });
+    }
+
+    const { organizationId, storeId, category, fileBase64, originalFilename } = req.body;
+
+    if (!organizationId || typeof organizationId !== 'string') {
+      return res.status(400).json({ error: 'organizationId is required' });
+    }
+    if (!fileBase64 || typeof fileBase64 !== 'string') {
+      return res.status(400).json({ error: 'fileBase64 is required' });
+    }
+
+    if (!isImageKitConfigured() || !imagekit) {
+      return res.status(503).json({
+        error: 'ImageKit server credentials are not configured in environment variables.',
+        code: 'IMAGEKIT_NOT_CONFIGURED',
+      });
+    }
+
+    let subfolder = 'documents';
+    if (category === 'organization-logo' || category === 'banner') subfolder = 'branding';
+    else if (category === 'store-logo' && storeId) subfolder = `stores/${storeId}`;
+    else if (category === 'avatar') subfolder = `users/${authUser.uid}`;
+    else if (category === 'product-image' || category === 'product_image' || category === 'products') subfolder = 'products';
+    else if (category === 'prescription') subfolder = 'prescriptions';
+
+    const folder = `/rx-omni/organizations/${organizationId}/${subfolder}`;
+    const safeFileName = `${category || 'asset'}-${Date.now()}-${(originalFilename || 'asset').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+
+    const ikResult = await imagekit.upload({
+      file: fileBase64,
+      fileName: safeFileName,
+      folder,
+      useUniqueFileName: true,
+      responseFields: ['tags', 'isPrivateFile', 'metadata', 'thumbnailUrl'],
+    });
+
+    return res.json(ikResult);
+  } catch (err: any) {
+    console.error('ImageKit proxy upload error:', err);
+    return res.status(500).json({ error: err.message || 'Server proxy upload to ImageKit failed' });
   }
 });
 

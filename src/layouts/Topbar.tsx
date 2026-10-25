@@ -129,15 +129,24 @@ export const Topbar: React.FC<TopbarProps> = ({
           className="flex items-center gap-2 pl-1 sm:pl-1.5 pr-1 sm:pr-2 py-1 rounded-xl hover:bg-[#F1F5F9] transition-colors cursor-pointer group"
           title={`Profile: ${currentUser.name}`}
         >
-          <div className="w-8 h-8 rounded-full bg-[#0B1F33] text-white flex items-center justify-center font-bold text-xs shadow-2xs flex-shrink-0">
-            {currentUser.name
-              ? currentUser.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()
-              : 'U'}
+          <div className="w-8 h-8 rounded-full bg-[#0B1F33] text-white flex items-center justify-center font-bold text-xs shadow-2xs flex-shrink-0 overflow-hidden border border-[#CBD5E1]">
+            {currentUser.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.name || 'User Avatar'}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            ) : currentUser.name ? (
+              currentUser.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()
+            ) : (
+              'U'
+            )}
           </div>
           <div className="hidden sm:flex flex-col text-left">
             <span className="text-xs font-bold text-[#0B1F33] leading-none group-hover:text-[#0D5C63] transition-colors truncate max-w-[110px] md:max-w-[140px]">

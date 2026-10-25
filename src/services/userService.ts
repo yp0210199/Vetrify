@@ -21,6 +21,7 @@ function fromFirestoreDoc(snapshot: DocumentSnapshot): FirestoreUser | null {
     email: data.email ?? null,
     displayName: data.displayName ?? null,
     photoURL: data.photoURL ?? null,
+    phoneNumber: data.phoneNumber ?? null,
     primaryOrganizationId: data.primaryOrganizationId ?? null,
     status: data.status || 'active',
     createdAt: data.createdAt,
@@ -103,6 +104,7 @@ export const userService = {
     data: {
       displayName?: string | null;
       photoURL?: string | null;
+      phoneNumber?: string | null;
       primaryOrganizationId?: string | null;
     }
   ): Promise<void> {

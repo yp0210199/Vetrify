@@ -18,6 +18,7 @@ export interface FirestoreUser {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  phoneNumber?: string | null;
   primaryOrganizationId: string | null;
   status: 'active' | 'suspended' | 'pending';
   createdAt?: Timestamp | null;
@@ -32,7 +33,7 @@ export type FirestoreUserCreatePayload = Omit<FirestoreUser, 'createdAt' | 'upda
 };
 
 export type FirestoreUserUpdatePayload = Partial<
-  Pick<FirestoreUser, 'displayName' | 'photoURL' | 'primaryOrganizationId'>
+  Pick<FirestoreUser, 'displayName' | 'photoURL' | 'phoneNumber' | 'primaryOrganizationId'>
 > & {
   updatedAt: FieldValue;
   lastLoginAt?: FieldValue;
@@ -501,6 +502,8 @@ export interface StaffMember {
   displayName: string;
   email: string;
   phone?: string;
+  phoneNumber?: string | null;
+  photoURL?: string | null;
   status: StaffStatus;
   joinedAt: Timestamp;
   updatedAt: Timestamp;

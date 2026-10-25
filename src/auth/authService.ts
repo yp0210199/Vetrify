@@ -2,6 +2,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  updatePassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
@@ -191,5 +192,36 @@ export const authService = {
   getCurrentUser(): AuthUser | null {
     const auth = getFirebaseAuth();
     return normalizeFirebaseUser(auth.currentUser);
+  },
+
+  /**
+   * Update profile display name and/or photo URL
+   */
+  async updateUserProfile(params: { displayName?: string; photoURL?: string }): Promise<AuthUser> {
+    const auth = getFirebaseAuth();
+    if (!auth.currentUser) throw new Error('No authenticated user session found.');
+
+    await updateProfile(auth.currentUser, {
+      displayName: params.displayName !== undefined ? params.displayName.trim() : auth.currentUser.displayName,
+      photoURL: params.photoURL !== undefined ? params.photoURL : auth.currentUser.photoURL,
+    });
+
+    const normalized = normalizeFirebaseUser(auth.currentUser);
+    if (!normalized) throw new Error('User profile updated but user identity could not be resolved.');
+    return normalized;
+  },
+
+  /**
+   * Update password for currently authenticated user
+   */
+  async updateUserPassword(newPassword: string): Promise<void> {
+    const auth = getFirebaseAuth();
+    if (!auth.currentUser) throw new Error('No authenticated user session found.');
+
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+    } catch (error) {
+      throw new Error(mapAuthError(error));
+    }
   },
 };

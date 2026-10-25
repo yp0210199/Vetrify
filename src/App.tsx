@@ -63,7 +63,7 @@ import {
 
 function AuthenticatedAppShell() {
   const { user } = useAuth();
-  const { organization, currentStore: firestoreStore, stores, currentStaff, switchStore, hasPermission } = useWorkspace();
+  const { organization, currentStore: firestoreStore, stores, currentStaff, firestoreUser, switchStore, hasPermission } = useWorkspace();
   const [activeModule, setActiveModule] = useState<NavModuleId>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -117,7 +117,7 @@ function AuthenticatedAppShell() {
       ? (currentStaff.roleId.charAt(0).toUpperCase() + currentStaff.roleId.slice(1)) as any
       : 'Pharmacist',
     storeName: activeStoreContext.name,
-    avatarUrl: user?.photoURL || undefined,
+    avatarUrl: user?.photoURL || currentStaff?.photoURL || firestoreUser?.photoURL || undefined,
   };
 
   // Global Keyboard Shortcuts (Ctrl+K for search, Ctrl+/ for help, F1 for POS)
@@ -251,6 +251,7 @@ function AuthenticatedAppShell() {
         storeLocation={activeStoreContext.location}
         userName={currentUser.name}
         userRole={currentUser.role}
+        userAvatarUrl={currentUser.avatarUrl}
         onOpenStoreSelector={() => setIsStoreModalOpen(true)}
         onOpenProfile={() => setIsProfileModalOpen(true)}
       />
