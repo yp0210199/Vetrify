@@ -1,0 +1,976 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Core Authorization Helpers
+    // =========================================================================
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Role Hierarchy Rank mapping:
+    // owner (6) > admin (5) > manager (4) > pharmacist (3) > cashier (2) > staff (1)
+    function roleRank(roleId) {
+      return roleId == 'owner' ? 6 :
+             roleId == 'admin' ? 5 :
+             roleId == 'manager' ? 4 :
+             roleId == 'pharmacist' ? 3 :
+             roleId == 'cashier' ? 2 :
+             roleId == 'staff' ? 1 : 0;
+    }
+
+    // Single Staff Document Fetch (Counts as exactly 1 get() lookup)
+    function getStaff(orgId) {
+      return get(/databases/$(database)/documents/organizations/$(orgId)/staff/$(request.auth.uid));
+    }
+
+    // Membership check using staff document (Active staff member)
+    function isStaffMember(orgId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/organizations/$(orgId)/staff/$(request.auth.uid)) &&
+        (
+          !('status' in getStaff(orgId).data) ||
+          getStaff(orgId).data.status == 'active'
+        );
+    }
+
+    function callerRole(orgId) {
+      return exists(/databases/$(database)/documents/organizations/$(orgId)/staff/$(request.auth.uid)) ?
+        getStaff(orgId).data.roleId : 'none';
+    }
+
+    function isOwner(orgId) {
+      return isStaffMember(orgId) && callerRole(orgId) == 'owner';
+    }
+
+    function isAdminOrOwner(orgId) {
+      return isStaffMember(orgId) && (callerRole(orgId) == 'owner' || callerRole(orgId) == 'admin');
+    }
+
+    function isManagerOrAbove(orgId) {
+      return isStaffMember(orgId) && (
+        callerRole(orgId) == 'owner' || 
+        callerRole(orgId) == 'admin' || 
+        callerRole(orgId) == 'manager'
+      );
+    }
+
+    // Store Access Check: allStoresAccess OR explicit store membership
+    function canAccessStore(orgId, storeId) {
+      return isStaffMember(orgId) && (
+        getStaff(orgId).data.allStoresAccess == true ||
+        storeId in getStaff(orgId).data.storeIds
+      );
+    }
+
+    // =========================================================================
+    // 1. Root Users Collection (/users/{userId})
+    // Global identity & preferences only (ZERO authorization authority)
+    // =========================================================================
+    match /users/{userId} {
+      allow read: if isUser(userId);
+
+      // Controlled creation & updates: only own document
+      allow create: if isUser(userId) && request.resource.data.uid == userId;
+      allow update: if isUser(userId) && request.resource.data.uid == userId;
+      allow delete: if false;
+
+      // 1a. User Notification Preferences Subcollection (/users/{userId}/notificationPreferences/{orgId})
+      match /notificationPreferences/{orgId} {
+        allow read: if isUser(userId);
+        allow create, update: if isUser(userId) &&
+          request.resource.data.uid == userId &&
+          request.resource.data.organizationId == orgId;
+        allow delete: if isUser(userId);
+      }
+    }
+
+    // =========================================================================
+    // Collection Group Match for Staff Membership Discovery
+    // Allows authenticated users to discover all their staff memberships across orgs
+    // =========================================================================
+    match /{path=**}/staff/{staffUid} {
+      allow read: if isAuthenticated() && (staffUid == request.auth.uid || (resource != null && resource.data.uid == request.auth.uid));
+    }
+
+    // =========================================================================
+    // 2. Organizations Collection (/organizations/{orgId})
+    // Top-level pharmacy tenant entity
+    // =========================================================================
+    match /organizations/{orgId} {
+      // Read: Any active member of the organization
+      allow read: if isStaffMember(orgId);
+
+      // Organization Provisioning: Creator must initialize org with matching ID
+      allow create: if isAuthenticated() &&
+        request.resource.data.id == orgId &&
+        request.resource.data.status in ['active', 'trial'];
+
+      // Update: Only Owner or Admin can update org configuration
+      allow update: if isAdminOrOwner(orgId) &&
+        request.resource.data.id == resource.data.id;
+
+      allow delete: if false;
+
+      // -----------------------------------------------------------------------
+      // 2a. Stores Subcollection (/organizations/{orgId}/stores/{storeId})
+      // -----------------------------------------------------------------------
+      match /stores/{storeId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+
+        // Allow create during initial org provisioning or by existing admin/owner
+        allow create: if (
+          (isAuthenticated() && !exists(/databases/$(database)/documents/organizations/$(orgId))) ||
+          isAdminOrOwner(orgId)
+        ) &&
+        request.resource.data.organizationId == orgId &&
+        request.resource.data.id == storeId;
+
+        allow update: if isAdminOrOwner(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2b. Staff Subcollection (/organizations/{orgId}/staff/{staffUid})
+      // Single Source of Truth for Organization Membership & RBAC
+      // -----------------------------------------------------------------------
+      match /staff/{staffUid} {
+        // Read: Any active member of the organization, OR the staff user reading their own record
+        allow read: if isStaffMember(orgId) || (isAuthenticated() && staffUid == request.auth.uid);
+
+        // CREATE STAFF MEMBER:
+        // Case 1: Initial Org bootstrap by creator (Allowed if organization does not already exist)
+        // Case 2: Owner creates any staff role (including another owner or admin)
+        // Case 3: Admin creates non-owner, non-admin staff (rank < 5)
+        // Case 4: Staff Member activates own account
+        allow create: if (
+          // Case 1: Initial Org bootstrap by creator for a NEW organization
+          (isAuthenticated() && staffUid == request.auth.uid && request.resource.data.roleId == 'owner' &&
+           request.resource.data.organizationId == orgId &&
+           !exists(/databases/$(database)/documents/organizations/$(orgId)))
+          ||
+          // Case 2: Existing Owner creates staff member in an existing organization
+          (isOwner(orgId) && request.resource.data.organizationId == orgId)
+          ||
+          // Case 3: Admin creates lower-rank staff member in an existing organization
+          (isAdminOrOwner(orgId) &&
+           callerRole(orgId) == 'admin' &&
+           request.resource.data.organizationId == orgId &&
+           roleRank(request.resource.data.roleId) < 5)
+          ||
+          // Case 4: Authenticated user activates their own staff membership via a pending invitation
+          (isAuthenticated() && staffUid == request.auth.uid &&
+           request.resource.data.organizationId == orgId &&
+           request.resource.data.uid == request.auth.uid &&
+           request.resource.data.status == 'active' &&
+           request.resource.data.invitationId != null &&
+           request.auth.token.email != null &&
+           request.auth.token.email.lower() == request.resource.data.email.lower() &&
+           exists(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)) &&
+           getAfter(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.status == 'accepted' &&
+           getAfter(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.acceptedByUid == request.auth.uid &&
+           get(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.status == 'pending' &&
+           get(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.email.lower() == request.resource.data.email.lower() &&
+           get(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.roleId == request.resource.data.roleId &&
+           get(/databases/$(database)/documents/organizations/$(orgId)/staffInvitations/$(request.resource.data.invitationId)).data.allStoresAccess == request.resource.data.allStoresAccess)
+        );
+
+        // UPDATE STAFF MEMBER:
+        // Rule: User CANNOT update their own staff document (prevents self-escalation)
+        // Rule: Owner can update anyone
+        // Rule: Admin can only modify members of strictly lower rank (< 5) and cannot promote to admin/owner
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          staffUid != request.auth.uid && (
+            isOwner(orgId)
+            ||
+            (callerRole(orgId) == 'admin' &&
+             roleRank(resource.data.roleId) < 5 &&
+             roleRank(request.resource.data.roleId) < 5)
+          );
+
+        // DELETE / REVOKE STAFF:
+        // Cannot delete self. Admin cannot delete another Admin or Owner.
+        allow delete: if isStaffMember(orgId) && staffUid != request.auth.uid && (
+          isOwner(orgId) ||
+          (callerRole(orgId) == 'admin' && roleRank(resource.data.roleId) < 5)
+        );
+      }
+
+      // -----------------------------------------------------------------------
+      // 2c. Roles Subcollection (/organizations/{orgId}/roles/{roleId})
+      // -----------------------------------------------------------------------
+      match /roles/{roleId} {
+        allow read: if isStaffMember(orgId);
+        allow create: if (
+          (isAuthenticated() && !exists(/databases/$(database)/documents/organizations/$(orgId))) ||
+          isOwner(orgId)
+        ) && request.resource.data.organizationId == orgId;
+        allow update: if isOwner(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if isOwner(orgId) && resource.data.isSystem != true;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2d. Staff Invitations Subcollection (/organizations/{orgId}/staffInvitations/{invitationId})
+      // -----------------------------------------------------------------------
+      match /staffInvitations/{invitationId} {
+        // Get: Anyone with the exact invitationId (secret bearer token) can read the invitation details
+        allow get: if true;
+        
+        // List: Only active staff members can list all invitations
+        allow list: if isStaffMember(orgId);
+
+        // Create Invitation:
+        // Owner can invite any role. Admin can only invite roles with rank < 5.
+        allow create: if (
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == invitationId &&
+          request.resource.data.invitedByUid == request.auth.uid &&
+          request.resource.data.status == 'pending' &&
+          (
+            isOwner(orgId) ||
+            (callerRole(orgId) == 'admin' && roleRank(request.resource.data.roleId) < 5)
+          )
+        );
+
+        // Update Invitation:
+        // 1. Admin/Owner can update/resend/revoke invitations (hierarchy respected)
+        // 2. Authenticated invited user can accept their pending invitation
+        allow update: if (
+          // Case 1: Active Admin/Owner managing invitations
+          (
+            isStaffMember(orgId) &&
+            request.resource.data.organizationId == orgId &&
+            (
+              isOwner(orgId) ||
+              (callerRole(orgId) == 'admin' && roleRank(resource.data.roleId) < 5 && roleRank(request.resource.data.roleId) < 5)
+            )
+          )
+          ||
+          // Case 2: Invited user accepting the pending invitation
+          (
+            isAuthenticated() &&
+            resource.data.status == 'pending' &&
+            request.resource.data.status == 'accepted' &&
+            request.resource.data.acceptedByUid == request.auth.uid &&
+            request.resource.data.roleId == resource.data.roleId &&
+            request.resource.data.organizationId == resource.data.organizationId &&
+            request.resource.data.allStoresAccess == resource.data.allStoresAccess &&
+            request.resource.data.storeIds == resource.data.storeIds &&
+            request.resource.data.email == resource.data.email &&
+            request.auth.token.email != null &&
+            request.auth.token.email.lower() == resource.data.email.lower()
+          )
+        );
+
+        // Delete Invitation: Owner or Admin (for lower roles)
+        allow delete: if isStaffMember(orgId) && (
+          isOwner(orgId) ||
+          (callerRole(orgId) == 'admin' && roleRank(resource.data.roleId) < 5)
+        );
+      }
+
+      // -----------------------------------------------------------------------
+      // 2e. Audit Logs Subcollection (/organizations/{orgId}/auditLogs/{logId})
+      // Client-appended operational event log with strict identity binding
+      // -----------------------------------------------------------------------
+      match /auditLogs/{logId} {
+        allow read: if isAdminOrOwner(orgId);
+
+        allow create: if (
+          (isAuthenticated() && !exists(/databases/$(database)/documents/organizations/$(orgId))) ||
+          isStaffMember(orgId)
+        ) &&
+          request.resource.data.actorUid == request.auth.uid &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == logId;
+
+        // Strictly IMMUTABLE from client
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2f. Notifications Subcollection (/organizations/{orgId}/notifications/{notificationId})
+      // Tenant-isolated in-app notification records
+      // -----------------------------------------------------------------------
+      match /notifications/{notificationId} {
+        // Read: Active staff member in org where recipientUid matches user UID or 'all'
+        allow read: if isStaffMember(orgId) &&
+          (resource.data.recipientUid == request.auth.uid || resource.data.recipientUid == 'all');
+
+        // Create: Active staff member creating tenant notification, OR during initial org setup
+        allow create: if (
+          (isAuthenticated() && !exists(/databases/$(database)/documents/organizations/$(orgId))) ||
+          isStaffMember(orgId)
+        ) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == notificationId;
+
+        // Update: Recipient updating read status on their own notification
+        allow update: if isStaffMember(orgId) &&
+          (resource.data.recipientUid == request.auth.uid || resource.data.recipientUid == 'all') &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        // Delete: Recipient or Admin/Owner
+        allow delete: if isStaffMember(orgId) && (
+          resource.data.recipientUid == request.auth.uid ||
+          isAdminOrOwner(orgId)
+        );
+      }
+
+      // -----------------------------------------------------------------------
+      // 2f-2. Tasks Subcollection (/organizations/{orgId}/tasks/{taskId})
+      // Tenant-isolated task records with role-based transitions and assignments
+      // -----------------------------------------------------------------------
+      match /tasks/{taskId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == taskId;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2g. Media Subcollection (/organizations/{orgId}/media/{mediaId})
+      // Tenant-isolated media metadata references
+      // -----------------------------------------------------------------------
+      match /media/{mediaId} {
+        // Read: Active staff member in org
+        allow read: if isStaffMember(orgId);
+
+        // Create: Active staff member creating tenant media reference owned by themselves
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.ownerUid == request.auth.uid &&
+          request.resource.data.id == mediaId;
+
+        // Update: Active staff member updating own media asset OR Admin/Owner
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          (resource.data.ownerUid == request.auth.uid || isAdminOrOwner(orgId));
+
+        // Delete: Owner of media asset OR Admin/Owner
+        allow delete: if isStaffMember(orgId) && (
+          resource.data.ownerUid == request.auth.uid ||
+          isAdminOrOwner(orgId)
+        );
+      }
+
+      // -----------------------------------------------------------------------
+      // 2h. Products Subcollection (/organizations/{orgId}/products/{productId})
+      // Canonical Pharmacy Product Master Records
+      // -----------------------------------------------------------------------
+      match /products/{productId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == productId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2i. Categories Subcollection (/organizations/{orgId}/categories/{categoryId})
+      // -----------------------------------------------------------------------
+      match /categories/{categoryId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == categoryId;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2j. Manufacturers Subcollection (/organizations/{orgId}/manufacturers/{manufacturerId})
+      // -----------------------------------------------------------------------
+      match /manufacturers/{manufacturerId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == manufacturerId;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2k. Taxes Subcollection (/organizations/{orgId}/taxes/{taxId})
+      // -----------------------------------------------------------------------
+      match /taxes/{taxId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create, update: if isAdminOrOwner(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == taxId;
+
+        allow delete: if isAdminOrOwner(orgId) && resource.data.isSystem != true;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2l. HSN Codes Subcollection (/organizations/{orgId}/hsnCodes/{hsnId})
+      // -----------------------------------------------------------------------
+      match /hsnCodes/{hsnId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create, update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == hsnId;
+
+        allow delete: if isAdminOrOwner(orgId) && resource.data.isSystem != true;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2m. Batches Subcollection (/organizations/{orgId}/batches/{batchId})
+      // -----------------------------------------------------------------------
+      match /batches/{batchId} {
+        // Read: Caller must be a staff member or authenticated user
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+
+        // Create: Valid org consistency, store access or authenticated user
+        allow create: if (canAccessStore(orgId, request.resource.data.storeId) || isAuthenticated()) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == batchId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        // Update: Valid org consistency, store access or authenticated user
+        allow update: if (canAccessStore(orgId, resource.data.storeId) || isAuthenticated()) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.productId == resource.data.productId &&
+          request.resource.data.storeId == resource.data.storeId;
+
+        // Delete / Archive: standard deletion is restricted to Owner / Admin
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2n. Invoices / Sales Subcollection (/organizations/{orgId}/invoices/{invoiceId})
+      // Statutory Pharmacy Sale Invoices (Append-Only / Immutable Financial Record)
+      // -----------------------------------------------------------------------
+      match /invoices/{invoiceId} {
+        // Read: Caller must be a staff member of the organization
+        allow read: if isStaffMember(orgId);
+
+        // Create: Active staff member with access to the store, self-stamped createdByUid, valid org binding
+        allow create: if isStaffMember(orgId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == invoiceId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        // Invoices are immutable statutory tax documents — cannot be edited or deleted by clients
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2o. Suppliers Subcollection (/organizations/{orgId}/suppliers/{supplierId})
+      // -----------------------------------------------------------------------
+      match /suppliers/{supplierId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == supplierId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+
+        // 2o-1. Supplier Ledger Subcollection (/organizations/{orgId}/suppliers/{supplierId}/ledger/{entryId})
+        match /ledger/{entryId} {
+          allow read: if isStaffMember(orgId);
+
+          allow create: if isStaffMember(orgId) &&
+            request.resource.data.organizationId == orgId &&
+            request.resource.data.supplierId == supplierId &&
+            request.resource.data.id == entryId &&
+            request.resource.data.createdByUid == request.auth.uid;
+
+          // Immutable financial audit trail
+          allow update, delete: if false;
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 2p. Purchase Orders Subcollection (/organizations/{orgId}/purchaseOrders/{purchaseOrderId})
+      // -----------------------------------------------------------------------
+      match /purchaseOrders/{purchaseOrderId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == purchaseOrderId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if canAccessStore(orgId, resource.data.storeId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId) && resource.data.status == 'draft';
+      }
+
+      // -----------------------------------------------------------------------
+      // 2q. Goods Receipt Notes (GRN) Subcollection (/organizations/{orgId}/grns/{grnId})
+      // -----------------------------------------------------------------------
+      match /grns/{grnId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == grnId &&
+          request.resource.data.receivedByUid == request.auth.uid;
+
+        allow update: if canAccessStore(orgId, resource.data.storeId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        // GRN records cannot be deleted once created
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2r. Customers Subcollection (/organizations/{orgId}/customers/{customerId})
+      // -----------------------------------------------------------------------
+      match /customers/{customerId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == customerId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+
+        // 2r-1. Customer Ledger Subcollection (/organizations/{orgId}/customers/{customerId}/ledger/{entryId})
+        match /ledger/{entryId} {
+          allow read: if isStaffMember(orgId);
+
+          allow create: if isStaffMember(orgId) &&
+            request.resource.data.organizationId == orgId &&
+            request.resource.data.customerId == customerId &&
+            request.resource.data.id == entryId &&
+            request.resource.data.createdByUid == request.auth.uid;
+
+          // Customer Ledger Entries are immutable financial records
+          allow update, delete: if false;
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 2s. Customer Payments Subcollection (/organizations/{orgId}/customerPayments/{paymentId})
+      // -----------------------------------------------------------------------
+      match /customerPayments/{paymentId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == paymentId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        // Customer payment receipts are immutable financial records
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2t. Sales Returns Subcollection (/organizations/{orgId}/returns/{returnId})
+      // -----------------------------------------------------------------------
+      match /returns/{returnId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == returnId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if canAccessStore(orgId, resource.data.storeId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2u. Credit Notes Subcollection (/organizations/{orgId}/creditNotes/{creditNoteId})
+      // Statutory Tax Document — Immutable Financial Record
+      // -----------------------------------------------------------------------
+      match /creditNotes/{creditNoteId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == creditNoteId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2v. Supplier Returns Subcollection (/organizations/{orgId}/supplierReturns/{supplierReturnId})
+      // -----------------------------------------------------------------------
+      match /supplierReturns/{supplierReturnId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == supplierReturnId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if canAccessStore(orgId, resource.data.storeId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId) && resource.data.status == 'draft';
+      }
+
+      // -----------------------------------------------------------------------
+      // 2w. Quarantine Records Subcollection (/organizations/{orgId}/quarantineRecords/{quarantineId})
+      // -----------------------------------------------------------------------
+      match /quarantineRecords/{quarantineId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == quarantineId &&
+          request.resource.data.quarantinedByUid == request.auth.uid;
+
+        allow update: if canAccessStore(orgId, resource.data.storeId) &&
+          canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2x. Destruction Records Subcollection (/organizations/{orgId}/destructionRecords/{destructionId})
+      // Statutory Pharmaceutical Destruction Audit Log
+      // -----------------------------------------------------------------------
+      match /destructionRecords/{destructionId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if canAccessStore(orgId, request.resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == destructionId &&
+          request.resource.data.requestedByUid == request.auth.uid;
+
+        allow update: if isManagerOrAbove(orgId) &&
+          canAccessStore(orgId, resource.data.storeId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2y. Wholesale Quotations (/organizations/{orgId}/wholesaleQuotations/{quotationId})
+      // -----------------------------------------------------------------------
+      match /wholesaleQuotations/{quotationId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == quotationId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2z. Wholesale Orders (/organizations/{orgId}/wholesaleOrders/{orderId})
+      // -----------------------------------------------------------------------
+      match /wholesaleOrders/{orderId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == orderId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2aa. Wholesale Invoices (/organizations/{orgId}/wholesaleInvoices/{invoiceId})
+      // -----------------------------------------------------------------------
+      match /wholesaleInvoices/{invoiceId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == invoiceId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ab. Delivery Challans (/organizations/{orgId}/deliveryChallans/{challanId})
+      // -----------------------------------------------------------------------
+      match /deliveryChallans/{challanId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == challanId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ac. Wholesale Price Rules (/organizations/{orgId}/wholesalePriceRules/{ruleId})
+      // -----------------------------------------------------------------------
+      match /wholesalePriceRules/{ruleId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create, update: if isManagerOrAbove(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == ruleId;
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ad. Stock Transfers (/organizations/{orgId}/stockTransfers/{transferId})
+      // -----------------------------------------------------------------------
+      match /stockTransfers/{transferId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == transferId &&
+          request.resource.data.requestedByUid == request.auth.uid &&
+          request.resource.data.sourceStoreId != request.resource.data.destinationStoreId;
+
+        allow update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == resource.data.id;
+
+        allow delete: if isAdminOrOwner(orgId) &&
+          (resource.data.status == 'DRAFT' || resource.data.status == 'CANCELLED' || resource.data.status == 'REJECTED');
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ae. Clinical Prescriptions (/organizations/{orgId}/prescriptions/{prescriptionId})
+      // -----------------------------------------------------------------------
+      match /prescriptions/{prescriptionId} {
+        allow read: if isStaffMember(orgId) || (isAuthenticated() && resource.data.createdByUid == request.auth.uid);
+
+        allow create: if (isStaffMember(orgId) || isAuthenticated()) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == prescriptionId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        allow update: if isStaffMember(orgId) || (isAuthenticated() && resource.data.createdByUid == request.auth.uid);
+
+        allow delete: if isAdminOrOwner(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2af. Immutable Schedule H1 Regulatory Register (/organizations/{orgId}/scheduleH1Register/{entryId})
+      // Once written, records are strictly read-only and immutable.
+      // -----------------------------------------------------------------------
+      match /scheduleH1Register/{entryId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == entryId &&
+          request.resource.data.createdByUid == request.auth.uid;
+
+        // No update and no delete under any circumstances to enforce compliance
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ag. Replenishment Rules (/organizations/{orgId}/reorderRules/{ruleId})
+      // -----------------------------------------------------------------------
+      match /reorderRules/{ruleId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isManagerOrAbove(orgId) && 
+          request.resource.data.organizationId == orgId &&
+          canAccessStore(orgId, request.resource.data.storeId);
+        allow delete: if isManagerOrAbove(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ah. Replenishment Recommendations (/organizations/{orgId}/reorderRecommendations/{recId})
+      // -----------------------------------------------------------------------
+      match /reorderRecommendations/{recId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && 
+          request.resource.data.organizationId == orgId &&
+          canAccessStore(orgId, request.resource.data.storeId);
+        allow delete: if isManagerOrAbove(orgId);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ai. Replenishment Runs (/organizations/{orgId}/replenishmentRuns/{runId})
+      // -----------------------------------------------------------------------
+      match /replenishmentRuns/{runId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2aj. Supplier Performance (/organizations/{orgId}/supplierPerformance/{perfId})
+      // -----------------------------------------------------------------------
+      match /supplierPerformance/{perfId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2ak. Replenishment Settings (/organizations/{orgId}/replenishmentSettings/{settingId})
+      // -----------------------------------------------------------------------
+      // -----------------------------------------------------------------------
+      // 2al. GST and Accounting Collections
+      // -----------------------------------------------------------------------
+      match /gstFilingPeriods/{periodId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /gstLedgerEntries/{entryId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /accounts/{accountId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /journalEntries/{entryId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /eInvoiceRecords/{recordId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /eInvoiceConfiguration/{configId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2am. E-Commerce & Home Delivery Collections
+      // -----------------------------------------------------------------------
+      match /customerAddresses/{addressId} {
+        allow read, write: if isAuthenticated() && (
+          isStaffMember(orgId) || resource == null || resource.data.customerId == request.auth.uid || request.resource.data.customerId == request.auth.uid
+        );
+      }
+      match /onlineOrders/{orderId} {
+        allow read: if isAuthenticated() && (
+          isStaffMember(orgId) || resource.data.customerId == request.auth.uid
+        );
+        allow create: if isAuthenticated() && (
+          isStaffMember(orgId) || request.resource.data.customerId == request.auth.uid
+        );
+        allow update: if isStaffMember(orgId) || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+        allow delete: if false;
+      }
+      match /deliveryPartners/{partnerId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /deliveryRuns/{runId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+
+      match /replenishmentSettings/{settingId} {
+        allow read: if isStaffMember(orgId);
+        allow create, update: if isManagerOrAbove(orgId) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // 2an. Warehouses Subcollections
+      // -----------------------------------------------------------------------
+      match /warehouses/{warehouseId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
+        allow delete: if isOwner(orgId);
+      }
+
+      match /warehouseStock/{stockId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
+        allow delete: if isOwner(orgId);
+      }
+    }
+
+    // Connection health test document
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

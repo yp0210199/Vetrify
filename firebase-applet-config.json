@@ -1,0 +1,12 @@
+{
+  "projectId": "rx-omni",
+  "appId": "1:926700498684:web:eb1b52dc0c02a6eec27179",
+  "apiKey": "AIzaSyBWggbiS3CX608kJRGqI5kvSIQ3TVyKwqc",
+  "authDomain": "rx-omni.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-vetrify-c2b535f6-47e6-41dc-aa6f-73bb27d55e5a",
+  "storageBucket": "rx-omni.firebasestorage.app",
+  "messagingSenderId": "926700498684",
+  "measurementId": "",
+  "oAuthClientId": "926700498684-0qu64uec6da3pd4ee8psbrd9hpcnpbsq.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}

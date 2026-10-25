@@ -1,0 +1,447 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Global user identity document with zero business authorization authority",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "primaryOrganizationId": { "type": "string", "description": "UI workspace preference hint only" },
+        "status": { "type": "string", "enum": ["active", "suspended", "pending"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "status"]
+    },
+    "Organization": {
+      "title": "Organization",
+      "description": "Pharmacy enterprise legal tenant (does NOT contain ownerUid)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique Organization ID" },
+        "name": { "type": "string", "description": "Pharmacy Trade Name" },
+        "legalName": { "type": "string" },
+        "gstin": { "type": "string" },
+        "drugLicenseNumber": { "type": "string" },
+        "currency": { "type": "string", "enum": ["INR"] },
+        "timezone": { "type": "string", "enum": ["Asia/Kolkata"] },
+        "status": { "type": "string", "enum": ["active", "inactive", "trial"] },
+        "settings": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "currency", "timezone", "status"]
+    },
+    "PharmacyStore": {
+      "title": "PharmacyStore",
+      "description": "Store branch or hospital counter under an organization",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "address": { "type": "object" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "drugLicenseNumber": { "type": "string" },
+        "gstin": { "type": "string" },
+        "isMainBranch": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "organizationId", "name", "code", "isMainBranch", "status"]
+    },
+    "StaffMember": {
+      "title": "StaffMember",
+      "description": "Single authority for organization membership, role, and branch access",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Matches Firebase Auth UID" },
+        "organizationId": { "type": "string" },
+        "allStoresAccess": { "type": "boolean" },
+        "storeIds": { "type": "array" },
+        "roleId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "suspended", "invited"] },
+        "joinedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "organizationId", "allStoresAccess", "storeIds", "roleId", "displayName", "email", "status"]
+    },
+    "Role": {
+      "title": "Role",
+      "description": "Custom operational role definitions with permission sets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "permissions": { "type": "array" },
+        "isSystem": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "organizationId", "name", "permissions", "isSystem"]
+    },
+    "StaffInvitation": {
+      "title": "StaffInvitation",
+      "description": "Team onboarding invitation with role and store permission boundaries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "phone": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "roleId": { "type": "string" },
+        "allStoresAccess": { "type": "boolean" },
+        "storeIds": { "type": "array" },
+        "invitedByUid": { "type": "string" },
+        "invitedByEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "revoked", "expired"] },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "acceptedAt": { "type": "string", "format": "date-time" },
+        "acceptedByUid": { "type": "string" }
+      },
+      "required": ["id", "organizationId", "email", "displayName", "roleId", "allStoresAccess", "storeIds", "invitedByUid", "status", "expiresAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable operational event log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "actorUid": { "type": "string" },
+        "actorEmail": { "type": "string" },
+        "actorDisplayName": { "type": "string" },
+        "action": { "type": "string" },
+        "entityType": { "type": "string" },
+        "entityId": { "type": "string" },
+        "metadata": { "type": "object" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "organizationId", "actorUid", "action", "entityType", "entityId", "timestamp"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Canonical pharmaceutical medicine master product record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "sku": { "type": "string" },
+        "productName": { "type": "string" },
+        "brand": { "type": "string" },
+        "composition": { "type": "string" },
+        "defaultMrp": { "type": "number" },
+        "defaultPurchaseCost": { "type": "number" },
+        "defaultSalePrice": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive", "archived"] }
+      },
+      "required": ["id", "organizationId", "sku", "productName", "brand", "composition", "defaultMrp", "defaultPurchaseCost", "defaultSalePrice", "status"]
+    },
+    "ProductCategory": {
+      "title": "ProductCategory",
+      "description": "Therapeutic class or medicine shelf categorization",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["id", "organizationId", "name", "status"]
+    },
+    "Manufacturer": {
+      "title": "Manufacturer",
+      "description": "Pharmaceutical manufacturer or brand laboratory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "normalizedName": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["id", "organizationId", "name", "normalizedName", "status"]
+    },
+    "TaxSlab": {
+      "title": "TaxSlab",
+      "description": "GST tax slab mapping for medicines",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "gstRate": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["id", "organizationId", "name", "gstRate", "status"]
+    },
+    "HsnRecord": {
+      "title": "HsnRecord",
+      "description": "HSN record mapping for GST invoicing compliance",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "code": { "type": "string" },
+        "defaultGstRate": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["id", "organizationId", "code", "defaultGstRate", "status"]
+    },
+    "PharmacyBatch": {
+      "title": "PharmacyBatch",
+      "description": "Inventory lot batch representing a physical shelf record for a product and store",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "productId": { "type": "string" },
+        "batchNumber": { "type": "string" },
+        "normalizedBatchNumber": { "type": "string" },
+        "manufacturingDate": { "type": "object" },
+        "expiryDate": { "type": "object" },
+        "purchasePrice": { "type": "number" },
+        "mrp": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "quantity": { "type": "number" },
+        "reservedQuantity": { "type": "number" },
+        "availableQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "depleted", "expired", "quarantined", "recalled", "archived"] }
+      },
+      "required": ["id", "organizationId", "storeId", "productId", "batchNumber", "normalizedBatchNumber", "manufacturingDate", "expiryDate", "purchasePrice", "mrp", "salePrice", "quantity", "reservedQuantity", "availableQuantity", "status"]
+    },
+    "UserNotificationPreferences": {
+      "title": "UserNotificationPreferences",
+      "description": "User notification channel preferences per organization",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "categories": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "organizationId", "categories"]
+    },
+    "SaleInvoice": {
+      "title": "SaleInvoice",
+      "description": "Statutory pharmaceutical tax sale invoice and dispensing record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "paymentMode": { "type": "string", "enum": ["cash", "upi", "card", "credit"] },
+        "items": { "type": "array" },
+        "itemsCount": { "type": "number" },
+        "totalQuantity": { "type": "number" },
+        "subtotal": { "type": "number" },
+        "totalDiscount": { "type": "number" },
+        "taxableAmount": { "type": "number" },
+        "cgstTotal": { "type": "number" },
+        "sgstTotal": { "type": "number" },
+        "totalTax": { "type": "number" },
+        "roundOff": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "hasScheduleHDrugs": { "type": "boolean" },
+        "prescription": { "type": "object" },
+        "status": { "type": "string", "enum": ["completed", "voided", "refunded"] },
+        "createdByUid": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "organizationId", "storeId", "invoiceNumber", "customerName", "paymentMode", "items", "itemsCount", "totalQuantity", "subtotal", "totalDiscount", "taxableAmount", "cgstTotal", "sgstTotal", "totalTax", "roundOff", "grandTotal", "hasScheduleHDrugs", "status", "createdByUid"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Pharmaceutical distributor, wholesaler or drug vendor master",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "currentBalance": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive", "blocked"] },
+        "createdByUid": { "type": "string" }
+      },
+      "required": ["id", "organizationId", "name", "phone", "currentBalance", "status", "createdByUid"]
+    },
+    "PurchaseOrder": {
+      "title": "PurchaseOrder",
+      "description": "Stock procurement order issued to a pharmaceutical supplier",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "supplierId": { "type": "string" },
+        "supplierName": { "type": "string" },
+        "poNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "pending_approval", "approved", "partially_fulfilled", "fulfilled", "cancelled"] },
+        "createdByUid": { "type": "string" }
+      },
+      "required": ["id", "organizationId", "storeId", "supplierId", "supplierName", "poNumber", "status", "createdByUid"]
+    },
+    "GRN": {
+      "title": "GRN",
+      "description": "Goods Receipt Note for inward stock verification and batch creation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "poId": { "type": "string" },
+        "grnNumber": { "type": "string" },
+        "supplierId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "completed", "cancelled"] },
+        "receivedByUid": { "type": "string" }
+      },
+      "required": ["id", "organizationId", "storeId", "poId", "grnNumber", "supplierId", "status", "receivedByUid"]
+    },
+    "StockTransferRequest": {
+      "title": "StockTransferRequest",
+      "description": "Inter-store stock transfer request and lifecycle tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "transferNumber": { "type": "string" },
+        "sourceStoreId": { "type": "string" },
+        "destinationStoreId": { "type": "string" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" },
+        "items": { "type": "array" },
+        "itemsCount": { "type": "number" },
+        "totalRequestedQty": { "type": "number" },
+        "totalTransferValue": { "type": "number" },
+        "requestedByUid": { "type": "string" }
+      },
+      "required": ["id", "organizationId", "transferNumber", "sourceStoreId", "destinationStoreId", "status", "priority", "items", "itemsCount", "totalRequestedQty", "requestedByUid"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Global user accounts with zero tenant privileges"
+    },
+    "/users/{userId}/notificationPreferences/{orgId}": {
+      "schema": "UserNotificationPreferences",
+      "description": "User-specific notification channel settings per organization"
+    },
+    "/organizations/{orgId}": {
+      "schema": "Organization",
+      "description": "Pharmacy enterprise legal entities"
+    },
+    "/organizations/{orgId}/stores/{storeId}": {
+      "schema": "PharmacyStore",
+      "description": "Store branches and dispensaries"
+    },
+    "/organizations/{orgId}/staff/{staffUid}": {
+      "schema": "StaffMember",
+      "description": "Single source of truth for organization membership and authorization"
+    },
+    "/organizations/{orgId}/roles/{roleId}": {
+      "schema": "Role",
+      "description": "Custom operational role definitions"
+    },
+    "/organizations/{orgId}/staffInvitations/{invitationId}": {
+      "schema": "StaffInvitation",
+      "description": "Team invitations and onboarding records"
+    },
+    "/organizations/{orgId}/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable append-only operational audit trail"
+    },
+    "/organizations/{orgId}/products/{productId}": {
+      "schema": "Product",
+      "description": "Pharmacy master medicines and drugs catalog"
+    },
+    "/organizations/{orgId}/categories/{categoryId}": {
+      "schema": "ProductCategory",
+      "description": "Medicine groups and families"
+    },
+    "/organizations/{orgId}/manufacturers/{manufacturerId}": {
+      "schema": "Manufacturer",
+      "description": "Pharma manufacturers and brand drug labs"
+    },
+    "/organizations/{orgId}/taxes/{taxId}": {
+      "schema": "TaxSlab",
+      "description": "GST taxation slabs"
+    },
+    "/organizations/{orgId}/hsnCodes/{hsnId}": {
+      "schema": "HsnRecord",
+      "description": "HSN drug categorization records"
+    },
+    "/organizations/{orgId}/batches/{batchId}": {
+      "schema": "PharmacyBatch",
+      "description": "Physical pharmacy inventory batch stock cards with expiration control"
+    },
+    "/organizations/{orgId}/invoices/{invoiceId}": {
+      "schema": "SaleInvoice",
+      "description": "Immutable statutory pharmacy sales tax invoices and dispensing audit trail"
+    },
+    "/organizations/{orgId}/suppliers/{supplierId}": {
+      "schema": "Supplier",
+      "description": "Pharmaceutical suppliers and vendors"
+    },
+    "/organizations/{orgId}/purchaseOrders/{purchaseOrderId}": {
+      "schema": "PurchaseOrder",
+      "description": "Purchase orders for stock inwarding"
+    },
+    "/organizations/{orgId}/grns/{grnId}": {
+      "schema": "GRN",
+      "description": "Goods Receipt Notes for stock inwarding"
+    },
+    "/organizations/{orgId}/returns/{returnId}": {
+      "schema": "SalesReturn",
+      "description": "Customer sales returns and batch quarantine/restock records"
+    },
+    "/organizations/{orgId}/creditNotes/{creditNoteId}": {
+      "schema": "CreditNote",
+      "description": "Statutory customer tax credit notes"
+    },
+    "/organizations/{orgId}/supplierReturns/{supplierReturnId}": {
+      "schema": "SupplierReturn",
+      "description": "Vendor return debit notes for expired/damaged stock"
+    },
+    "/organizations/{orgId}/quarantineRecords/{quarantineId}": {
+      "schema": "QuarantineRecord",
+      "description": "Non-saleable quarantined stock register"
+    },
+    "/organizations/{orgId}/destructionRecords/{destructionId}": {
+      "schema": "DestructionRecord",
+      "description": "Statutory drug destruction certificate audit trail"
+    },
+    "/organizations/{orgId}/stockTransfers/{transferId}": {
+      "schema": "StockTransferRequest",
+      "description": "Inter-store stock transfer requests and movement tracking"
+    },
+    "/test/{testId}": {
+      "schema": "User",
+      "description": "Connection health test documents"
+    }
+  }
+}
