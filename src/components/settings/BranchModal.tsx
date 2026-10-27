@@ -65,7 +65,6 @@ export const BranchModal: React.FC<BranchModalProps> = ({
       setCity('');
       setState('');
       setPostalCode('');
-      setDrugLicenseNumber(organization?.drugLicenseNumber || '');
       setGstin(organization?.gstin || '');
       setIsMainBranch(false);
       setStatus('active');
@@ -124,7 +123,6 @@ export const BranchModal: React.FC<BranchModalProps> = ({
             phone: phone.trim(),
             email: email.trim(),
             address: addressObj,
-            drugLicenseNumber: drugLicenseNumber.trim(),
             gstin: gstin.trim(),
             isMainBranch,
             status,
@@ -141,7 +139,6 @@ export const BranchModal: React.FC<BranchModalProps> = ({
             phone: phone.trim(),
             email: email.trim(),
             address: addressObj,
-            drugLicenseNumber: drugLicenseNumber.trim(),
             gstin: gstin.trim(),
             isMainBranch,
           },

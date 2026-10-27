@@ -4,8 +4,8 @@ import { PharmacyBatch } from '../types/batch';
  * Calculates days remaining until the batch's expiry date (can be negative if already expired).
  * Compares date-only values (disregarding hours/minutes/seconds) for deterministic outcome.
  */
-export function getDaysUntilExpiry(batch: { expiryDate: any }): number {
-  if (!batch.expiryDate) return 0;
+export function getDaysUntilExpiry(batch: { expiryDate?: any }): number {
+  if (!batch || !batch.expiryDate) return 9999; // Items without expiry (e.g. Tiles) never expire
 
   let expiryMillis = 0;
   if (typeof batch.expiryDate.toMillis === 'function') {
@@ -36,14 +36,16 @@ export function getDaysUntilExpiry(batch: { expiryDate: any }): number {
 /**
  * Checks if a batch has reached or passed its expiry date.
  */
-export function isBatchExpired(batch: { expiryDate: any }): boolean {
+export function isBatchExpired(batch: { expiryDate?: any }): boolean {
+  if (!batch || !batch.expiryDate) return false;
   return getDaysUntilExpiry(batch) <= 0;
 }
 
 /**
  * Checks if a batch will expire within the configured threshold (default 30 days).
  */
-export function isBatchExpiringSoon(batch: { expiryDate: any }, thresholdDays = 30): boolean {
+export function isBatchExpiringSoon(batch: { expiryDate?: any }, thresholdDays = 30): boolean {
+  if (!batch || !batch.expiryDate) return false;
   const days = getDaysUntilExpiry(batch);
   return days > 0 && days <= thresholdDays;
 }
@@ -52,9 +54,10 @@ export function isBatchExpiringSoon(batch: { expiryDate: any }, thresholdDays = 
  * Determines the categorical expiry condition state of a batch.
  */
 export function getBatchExpiryState(
-  batch: { expiryDate: any },
+  batch: { expiryDate?: any },
   thresholdDays = 30
 ): 'expired' | 'expiring-soon' | 'valid' {
+  if (!batch || !batch.expiryDate) return 'valid';
   const days = getDaysUntilExpiry(batch);
   if (days <= 0) return 'expired';
   if (days <= thresholdDays) return 'expiring-soon';

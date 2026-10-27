@@ -67,8 +67,6 @@ export async function getProducts(
     categoryId,
     manufacturerId,
     productType,
-    schedule,
-    isColdChain,
     status = 'active',
     pageSize = 50,
     lastDoc,
@@ -95,14 +93,6 @@ export async function getProducts(
 
     if (productType) {
       constraints.push(where('productType', '==', productType));
-    }
-
-    if (schedule) {
-      constraints.push(where('schedule', '==', schedule));
-    }
-
-    if (typeof isColdChain === 'boolean') {
-      constraints.push(where('isColdChain', '==', isColdChain));
     }
 
     constraints.push(orderBy('productName', 'asc'));
@@ -141,7 +131,7 @@ export async function getProducts(
     }
   });
 
-  // Client-side filtering for status, category, manufacturer, schedule, isColdChain if fallback was used
+  // Client-side filtering for status, category, manufacturer if fallback was used
   if (status !== 'all') {
     products = products.filter((p) => p.status === status);
   }
@@ -154,21 +144,14 @@ export async function getProducts(
   if (productType) {
     products = products.filter((p) => p.productType === productType);
   }
-  if (schedule) {
-    products = products.filter((p) => p.schedule === schedule);
-  }
-  if (typeof isColdChain === 'boolean') {
-    products = products.filter((p) => p.isColdChain === isColdChain);
-  }
 
-  // Client-side search filtering (brand, composition, barcode, SKU, productName, manufacturerName) if searchQuery is present
+  // Client-side search filtering (brand, barcode, SKU, productName, manufacturerName) if searchQuery is present
   if (searchQuery && searchQuery.trim()) {
     const qLower = searchQuery.trim().toLowerCase();
     products = products.filter((p) => {
       return (
         (p.productName || '').toLowerCase().includes(qLower) ||
         (p.brand || '').toLowerCase().includes(qLower) ||
-        (p.composition || '').toLowerCase().includes(qLower) ||
         (p.sku || '').toLowerCase().includes(qLower) ||
         (p.barcode || '').toLowerCase().includes(qLower) ||
         (p.rackLocation || '').toLowerCase().includes(qLower) ||
@@ -217,14 +200,12 @@ export async function getProductById(
 export async function checkDuplicateProduct(
   organizationId: string,
   brand: string,
-  composition: string,
-  strength: string,
-  dosageForm: string
+  productName: string
 ): Promise<Product | null> {
   const normBrand = normalizeString(brand);
-  const normComp = normalizeString(composition);
+  const normName = normalizeString(productName);
 
-  if (!normBrand || !normComp) return null;
+  if (!normBrand || !normName) return null;
 
   const ref = getProductsRef(organizationId);
   const q = query(ref, where('status', '==', 'active'));
@@ -234,9 +215,7 @@ export async function checkDuplicateProduct(
     const data = { id: docSnap.id, ...docSnap.data() } as Product;
     if (
       normalizeString(data.brand) === normBrand &&
-      normalizeString(data.composition) === normComp &&
-      normalizeString(data.strength) === normalizeString(strength) &&
-      data.dosageForm === dosageForm
+      normalizeString(data.productName) === normName
     ) {
       return data;
     }
@@ -269,7 +248,6 @@ export async function createProduct(
 
   const sku = payload.sku?.trim() || generateProductSku(payload.productName);
   const normName = normalizeString(payload.productName);
-  const normComp = normalizeString(payload.composition);
 
   const createPayload: ProductCreatePayload = {
     id: productId,
@@ -279,25 +257,15 @@ export async function createProduct(
     productName: payload.productName.trim(),
     normalizedProductName: normName,
     brand: payload.brand.trim(),
-    composition: payload.composition.trim(),
-    normalizedComposition: normComp,
-    productType: payload.productType || 'Allopathy',
-    dosageForm: payload.dosageForm || 'Tablet',
-    strength: payload.strength ? payload.strength.trim() : '',
-    routeOfAdministration: payload.routeOfAdministration || 'Oral',
+    productType: payload.productType || 'Vitrified Tiles',
     categoryId: payload.categoryId || 'uncategorized',
     categoryName: payload.categoryName || 'General',
     manufacturerId: payload.manufacturerId || 'unassigned',
     manufacturerName: payload.manufacturerName || 'Generic Manufacturer',
-    schedule: payload.schedule || 'OTC',
     classificationId: payload.classificationId || '',
-    requiresPrescription: payload.requiresPrescription ?? (payload.schedule !== 'OTC'),
-    isColdChain: payload.isColdChain ?? false,
-    isNarcotic: payload.isNarcotic ?? (payload.schedule === 'X' || payload.schedule === 'Narcotic'),
-    isBanned: payload.isBanned ?? false,
-    packaging: payload.packaging || { packUnit: 'Strip', baseUnit: 'Tablet', conversionFactor: 10 },
-    hsnCode: payload.hsnCode || '30049019',
-    gstRate: typeof payload.gstRate === 'number' ? payload.gstRate : 12,
+    packaging: payload.packaging || { packUnit: 'Box', baseUnit: 'Sq. Ft', conversionFactor: 15.5 },
+    hsnCode: payload.hsnCode || '6907',
+    gstRate: typeof payload.gstRate === 'number' ? payload.gstRate : 18,
     taxInclusive: payload.taxInclusive ?? false,
     defaultMrp: Number(payload.defaultMrp) || 0,
     defaultPurchaseCost: Number(payload.defaultPurchaseCost) || 0,
@@ -331,7 +299,6 @@ export async function createProduct(
       productName: payload.productName,
       brand: payload.brand,
       sku,
-      schedule: payload.schedule,
     },
   });
 
@@ -363,9 +330,6 @@ export async function updateProduct(
 
   if (updates.productName) {
     updatePayload.normalizedProductName = normalizeString(updates.productName);
-  }
-  if (updates.composition) {
-    updatePayload.normalizedComposition = normalizeString(updates.composition);
   }
 
   await updateDoc(docRef, updatePayload);
@@ -440,36 +404,32 @@ export function parseProductsCsvContent(csvContent: string): ProductImportSummar
       return '';
     };
 
-    const productName = getCol(['product', 'medicine', 'name']);
-    const brand = getCol(['brand', 'trade']);
-    const composition = getCol(['composition', 'salt', 'generic']);
-    const dosageForm = getCol(['form', 'dosage']) || 'Tablet';
-    const strength = getCol(['strength', 'mg']) || '500mg';
-    const manufacturer = getCol(['manufacturer', 'mfr', 'company']) || 'Generic Pharma';
-    const category = getCol(['category', 'cat']) || 'Medicines & Pharmaceuticals';
-    const hsnCode = getCol(['hsn', 'code']) || '30049019';
-    const gstRate = parseFloat(getCol(['gst', 'tax'])) || 12;
+    const productName = getCol(['product', 'tile', 'sanitaryware', 'name']);
+    const brand = getCol(['brand', 'manufacturer', 'company']);
+    const dimensions = getCol(['dimensions', 'size', 'mm']);
+    const finish = getCol(['finish', 'surface']) || 'Glossy';
+    const manufacturer = getCol(['manufacturer', 'mfr', 'company']) || 'Generic Manufacturer';
+    const category = getCol(['category', 'cat']) || 'Vitrified Tiles';
+    const hsnCode = getCol(['hsn', 'code']) || '6907';
+    const gstRate = parseFloat(getCol(['gst', 'tax'])) || 18;
     const mrp = parseFloat(getCol(['mrp', 'price'])) || 0;
     const purchaseCost = parseFloat(getCol(['cost', 'purchase'])) || 0;
     const salePrice = parseFloat(getCol(['sale', 'rate'])) || mrp || 0;
-    const packUnit = getCol(['pack', 'packunit']) || 'Strip';
-    const baseUnit = getCol(['base', 'baseunit']) || 'Tablet';
-    const conversionFactor = parseInt(getCol(['conversion', 'factor', 'ratio'])) || 10;
-    const schedule = getCol(['schedule', 'sch']) || 'OTC';
-    const rackLocation = getCol(['rack', 'shelf']) || 'Unassigned';
+    const packUnit = getCol(['pack', 'packunit']) || 'Box';
+    const baseUnit = getCol(['base', 'baseunit']) || 'Sq. Ft';
+    const conversionFactor = parseFloat(getCol(['conversion', 'factor', 'sqft'])) || 15.5;
+    const rackLocation = getCol(['rack', 'yard', 'godown', 'shelf']) || 'Godown A';
 
     if (!productName) errors.push('Product name is required');
     if (!brand) errors.push('Brand name is required');
-    if (!composition) errors.push('Composition salt is required');
     if (mrp <= 0) errors.push('MRP must be greater than 0');
 
     parsedProducts.push({
       rowNumber: rowNum,
       productName,
       brand,
-      composition,
-      dosageForm,
-      strength,
+      dimensions,
+      finish,
       manufacturer,
       category,
       hsnCode,
@@ -480,7 +440,6 @@ export function parseProductsCsvContent(csvContent: string): ProductImportSummar
       packUnit,
       baseUnit,
       conversionFactor,
-      schedule,
       rackLocation,
       isValid: errors.length === 0,
       errors,
@@ -514,30 +473,27 @@ export async function batchImportProducts(
     await createProduct(organizationId, caller, {
       productName: row.productName,
       brand: row.brand,
-      composition: row.composition,
-      dosageForm: row.dosageForm as any,
-      strength: row.strength,
+      tileDimensions: row.dimensions,
+      surfaceFinish: row.finish as any,
       manufacturerName: row.manufacturer,
       manufacturerId: 'mfr_imported',
       categoryName: row.category,
       categoryId: 'cat_imported',
-      hsnCode: row.hsnCode,
-      gstRate: row.gstRate,
+      hsnCode: row.hsnCode || '6907',
+      gstRate: row.gstRate || 18,
       defaultMrp: row.mrp,
       defaultPurchaseCost: row.purchaseCost,
       defaultSalePrice: row.salePrice,
       packaging: {
-        packUnit: row.packUnit,
-        baseUnit: row.baseUnit,
-        conversionFactor: row.conversionFactor,
+        packUnit: row.packUnit || 'Box',
+        baseUnit: row.baseUnit || 'Sq. Ft',
+        conversionFactor: row.conversionFactor || 15.5,
+        coveragePerBoxSqFt: row.coveragePerBoxSqFt,
+        piecesPerBox: row.piecesPerBox,
       },
-      schedule: row.schedule.toUpperCase() as any,
       rackLocation: row.rackLocation,
-      productType: 'Allopathy',
-      requiresPrescription: row.schedule.toUpperCase() !== 'OTC',
-      isColdChain: false,
-      isNarcotic: false,
-      isBanned: false,
+      productType: (row.productType as any) || 'Vitrified Tiles',
+      categoryType: row.categoryType || 'tiles',
       taxInclusive: false,
       minMarginPercent: 20,
       status: 'active',

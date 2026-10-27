@@ -5,6 +5,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -20,23 +21,14 @@ import {
 import { validateProductCategory } from '../lib/firebase/validators';
 import { logAuditEvent } from './auditService';
 
-/**
- * Get category collection reference for an organization
- */
 function getCategoriesRef(organizationId: string) {
   return collection(db, 'organizations', organizationId, 'categories');
 }
 
-/**
- * Get category document reference
- */
 function getCategoryDocRef(organizationId: string, categoryId: string) {
   return doc(db, 'organizations', organizationId, 'categories', categoryId);
 }
 
-/**
- * Fetch all categories for an organization
- */
 export async function getCategories(
   organizationId: string,
   includeInactive = false
@@ -59,27 +51,24 @@ export async function getCategories(
   return categories;
 }
 
-/**
- * Create new category master record
- */
 export async function createCategory(
   organizationId: string,
   caller: { uid: string; email?: string | null; displayName?: string | null },
   payload: Omit<ProductCategory, 'id' | 'organizationId' | 'createdAt' | 'updatedAt'>
 ): Promise<ProductCategory> {
-  const categoriesRef = getCategoriesRef(organizationId);
-  const newDocRef = doc(categoriesRef);
+  const ref = getCategoriesRef(organizationId);
+  const newDocRef = doc(ref);
   const categoryId = newDocRef.id;
 
   const createPayload: ProductCategoryCreatePayload = {
     id: categoryId,
     organizationId,
     name: payload.name.trim(),
-    code: payload.code ? payload.code.trim().toUpperCase() : categoryId.substring(0, 8).toUpperCase(),
-    parentId: payload.parentId || null,
+    code: payload.code.trim().toUpperCase(),
     description: payload.description ? payload.description.trim() : '',
+    parentId: payload.parentId || null,
+    categoryType: payload.categoryType || 'tiles',
     status: payload.status || 'active',
-    isSystem: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -96,7 +85,7 @@ export async function createCategory(
     storeId: null,
     metadata: {
       categoryName: payload.name,
-      code: createPayload.code,
+      categoryCode: payload.code,
     },
   });
 
@@ -107,13 +96,10 @@ export async function createCategory(
   } as ProductCategory;
 }
 
-/**
- * Seed default pharmacy categories if none exist
- */
-export async function seedDefaultCategories(
+export async function deleteCategory(
   organizationId: string,
-  caller: { uid: string; email?: string | null; displayName?: string | null }
-): Promise<ProductCategory[]> {
-  // Empty implementation to comply with strict production policies against automatic seeding of dummy/demo data.
-  return [];
+  categoryId: string
+): Promise<void> {
+  const docRef = getCategoryDocRef(organizationId, categoryId);
+  await deleteDoc(docRef);
 }

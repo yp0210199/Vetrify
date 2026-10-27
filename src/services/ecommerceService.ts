@@ -108,11 +108,11 @@ export const ecommerceService = {
       const ordersRef = collection(db, 'organizations', orgId, 'onlineOrders');
       let q;
       if (customerId) {
-        q = query(ordersRef, where('customerId', '==', customerId), orderBy('createdAt', 'desc'));
+        q = query(ordersRef, where('customerId', '==', customerId));
       } else if (storeId) {
-        q = query(ordersRef, where('storeId', '==', storeId), orderBy('createdAt', 'desc'));
+        q = query(ordersRef, where('storeId', '==', storeId));
       } else {
-        q = query(ordersRef, orderBy('createdAt', 'desc'));
+        q = query(ordersRef);
       }
 
       const snap = await getDocs(q);
@@ -121,6 +121,21 @@ export const ecommerceService = {
       if (storeId && customerId) {
         orders = orders.filter(o => o.storeId === storeId);
       }
+
+      orders.sort((a, b) => {
+        const getMillis = (val: any) => {
+          if (!val) return 0;
+          if (typeof val === 'object' && 'toMillis' in val && typeof val.toMillis === 'function') {
+            return val.toMillis();
+          }
+          if (typeof val === 'object' && 'seconds' in val) {
+            return val.seconds * 1000;
+          }
+          return new Date(val).getTime() || 0;
+        };
+        return getMillis(b.createdAt) - getMillis(a.createdAt);
+      });
+
       return orders;
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);

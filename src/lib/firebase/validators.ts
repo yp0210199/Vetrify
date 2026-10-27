@@ -11,7 +11,6 @@ import {
   ROLE_RANKS,
   SystemRoleId,
   SaleInvoice,
-  PrescriptionDetails,
   Supplier,
   SupplierLedgerEntry,
   PurchaseOrder,
@@ -113,7 +112,7 @@ export function validateOrganization(data: unknown): data is Organization {
 /**
  * Runtime Validator for Store Documents (/organizations/{orgId}/stores/{storeId})
  */
-export function validatePharmacyStore(data: unknown, expectedOrgId?: string): data is PharmacyStore {
+export function validateStoreBranch(data: unknown, expectedOrgId?: string): data is PharmacyStore {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
   const isValid =
@@ -128,6 +127,8 @@ export function validatePharmacyStore(data: unknown, expectedOrgId?: string): da
   if (expectedOrgId && d.organizationId !== expectedOrgId) return false;
   return true;
 }
+
+export const validatePharmacyStore = validateStoreBranch;
 
 /**
  * Runtime Validator for Staff Membership Documents (/organizations/{orgId}/staff/{uid})
@@ -359,7 +360,7 @@ function getMillis(val: unknown): number | null {
 /**
  * Runtime Validator for Pharmacy Batch Documents (/organizations/{orgId}/batches/{batchId})
  */
-export function validatePharmacyBatch(data: unknown, expectedOrgId?: string): boolean {
+export function validateProductLot(data: unknown, expectedOrgId?: string): boolean {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
 
@@ -369,9 +370,6 @@ export function validatePharmacyBatch(data: unknown, expectedOrgId?: string): bo
     isNonEmptyString(d.storeId) &&
     isNonEmptyString(d.productId) &&
     isNonEmptyString(d.batchNumber) &&
-    isNonEmptyString(d.normalizedBatchNumber) &&
-    isValidTimestamp(d.manufacturingDate) &&
-    isValidTimestamp(d.expiryDate) &&
     typeof d.purchasePrice === 'number' && d.purchasePrice >= 0 &&
     typeof d.mrp === 'number' && d.mrp >= 0 &&
     typeof d.salePrice === 'number' && d.salePrice >= 0 &&
@@ -380,18 +378,13 @@ export function validatePharmacyBatch(data: unknown, expectedOrgId?: string): bo
     typeof d.availableQuantity === 'number' && d.availableQuantity >= 0 &&
     (d.status === 'active' ||
       d.status === 'depleted' ||
-      d.status === 'expired' ||
+      d.status === 'damaged' ||
+      d.status === 'reserved' ||
       d.status === 'quarantined' ||
       d.status === 'recalled' ||
       d.status === 'archived');
 
   if (!hasValidFields) return false;
-
-  const mfgMillis = getMillis(d.manufacturingDate);
-  const expMillis = getMillis(d.expiryDate);
-  if (mfgMillis !== null && expMillis !== null && mfgMillis > expMillis) {
-    return false;
-  }
 
   if (expectedOrgId && d.organizationId !== expectedOrgId) {
     return false;
@@ -400,18 +393,13 @@ export function validatePharmacyBatch(data: unknown, expectedOrgId?: string): bo
   return true;
 }
 
+export const validatePharmacyBatch = validateProductLot;
+
 /**
  * Runtime Validator for Statutory Prescription Details
  */
-export function validatePrescriptionDetails(data: unknown): data is PrescriptionDetails {
-  if (!data || typeof data !== 'object') return false;
-  const d = data as Record<string, unknown>;
-  return (
-    isNonEmptyString(d.patientName) &&
-    (typeof d.patientAge === 'number' || isNonEmptyString(d.patientAge)) &&
-    isNonEmptyString(d.doctorName) &&
-    isNonEmptyString(d.doctorRegNo)
-  );
+export function validatePrescriptionDetails(data: unknown): boolean {
+  return true;
 }
 
 /**
@@ -440,7 +428,6 @@ export function validateSaleInvoice(data: unknown, expectedOrgId?: string): data
     typeof d.totalTax === 'number' &&
     typeof d.roundOff === 'number' &&
     typeof d.grandTotal === 'number' &&
-    typeof d.hasScheduleHDrugs === 'boolean' &&
     (d.status === 'completed' || d.status === 'voided' || d.status === 'refunded') &&
     isNonEmptyString(d.createdByUid);
 
@@ -448,13 +435,6 @@ export function validateSaleInvoice(data: unknown, expectedOrgId?: string): data
 
   if (expectedOrgId && d.organizationId !== expectedOrgId) {
     return false;
-  }
-
-  // If Schedule H/H1/X drugs are present, prescription must be provided and valid
-  if (d.hasScheduleHDrugs) {
-    if (!validatePrescriptionDetails(d.prescription)) {
-      return false;
-    }
   }
 
   // Validate items

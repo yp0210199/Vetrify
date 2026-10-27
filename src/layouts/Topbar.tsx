@@ -63,7 +63,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             <div className="flex items-center gap-2 overflow-hidden">
               <Search className="w-4 h-4 text-[#0D5C63] group-hover:scale-105 transition-transform flex-shrink-0" />
               <span className="truncate text-[11px] sm:text-xs">
-                Search medicines, batches...
+                Search tiles, sanitaryware, lots...
               </span>
             </div>
             <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 text-[10px] font-bold text-[#64748B] bg-white border border-[#CBD5E1] rounded shadow-2xs font-mono flex-shrink-0">

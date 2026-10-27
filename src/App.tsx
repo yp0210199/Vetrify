@@ -16,14 +16,12 @@ import { ReturnsWorkspace } from './components/returns/ReturnsWorkspace';
 import { FutureModuleView } from './views/FutureModuleView';
 import { SettingsView } from './views/settings/SettingsView';
 import { NotificationsCenter } from './views/NotificationsCenter';
-import { ComplianceView } from './views/ComplianceView';
 import { ReplenishmentView } from './views/ReplenishmentView';
 import { EInvoiceSettingsView } from './views/EInvoiceSettingsView';
 import { EcommerceModuleView } from './views/EcommerceModuleView';
 import { TasksWorkspaceView } from './views/TasksWorkspaceView';
 import { AuditCentreView } from './views/AuditCentreView';
 import { ActivityCentreView } from './views/ActivityCentreView';
-import { ClinicalDecisionSupportView } from './views/ClinicalDecisionSupportView';
 import { WarehouseControlCenterView } from './components/warehouse/WarehouseControlCenterView';
 import { GlobalSearch } from './components/common/GlobalSearch';
 import { NotificationDrawer } from './components/common/NotificationDrawer';
@@ -104,7 +102,7 @@ function AuthenticatedAppShell() {
       ? [firestoreStore.address.city, firestoreStore.address.state].filter(Boolean).join(', ') || 'India'
       : 'India',
     gstin: firestoreStore?.gstin || organization?.gstin || 'GST Unregistered',
-    dlNumber: firestoreStore?.drugLicenseNumber || organization?.drugLicenseNumber || 'Form 20B/21B Active',
+    dlNumber: firestoreStore?.gstin || organization?.gstin || 'GST Registered',
     status: firestoreStore?.status === 'active' ? 'online' : 'offline',
   };
 
@@ -198,8 +196,6 @@ function AuthenticatedAppShell() {
         return <ReturnsWorkspace />;
       case 'notifications':
         return <NotificationsCenter onNavigateToModule={handleSelectModule} />;
-      case 'compliance':
-        return <ComplianceView />;
       case 'gst_accounts':
         return <EInvoiceSettingsView />;
       case 'ecommerce':
@@ -210,8 +206,6 @@ function AuthenticatedAppShell() {
         return <AuditCentreView />;
       case 'activity_centre':
         return <ActivityCentreView onNavigateToModule={handleSelectModule} />;
-      case 'clinical_support':
-        return <ClinicalDecisionSupportView />;
       case 'warehouses':
         if (!hasPermission('warehouse.view')) {
           return <DashboardView onNavigate={handleSelectModule} />;
@@ -382,43 +376,39 @@ function AuthenticatedAppShell() {
               ],
             },
             {
-              category: 'Inventory & Supply Logistics',
+              category: 'Inventory, Godowns & Logistics',
               items: [
-                { id: 'inventory', label: 'Inventory Master', desc: 'Medicine catalog & batch expiries', icon: Package, badge: 'Master' },
-                { id: 'warehouses', label: 'Warehouses & Hubs', desc: 'Depot zones & central storage', icon: Warehouse, badge: 'Hub' },
-                { id: 'transfers', label: 'Stock Transfers', desc: 'Inter-branch stock dispatch & GRN', icon: ArrowLeftRight, badge: 'Transfers' },
-                { id: 'purchases', label: 'Purchases & GRN', desc: 'Vendor purchase orders & inwards', icon: ShoppingBag, badge: 'GRN' },
+                { id: 'inventory', label: 'Tiles & Sanitary Master', desc: 'Tile catalog, sizes & shade lot tracking', icon: Package, badge: 'Master' },
+                { id: 'warehouses', label: 'Godowns & Yards', desc: 'Yards, aisles & central godown storage', icon: Warehouse, badge: 'Yard' },
+                { id: 'transfers', label: 'Stock Transfers', desc: 'Inter-yard stock dispatch & challans', icon: ArrowLeftRight, badge: 'Transfers' },
+                { id: 'purchases', label: 'Purchases & Inwards', desc: 'Vendor purchase orders & GRN', icon: ShoppingBag, badge: 'GRN' },
                 { id: 'replenishment', label: 'Auto Replenishment', desc: 'Smart PO re-order triggers', icon: RefreshCw, badge: 'Auto PO' },
               ],
             },
             {
               category: 'CRM, Finance & Accounts',
               items: [
-                { id: 'customers', label: 'Customers (Khata)', desc: 'Patient credit ledgers & balance', icon: Users, badge: 'Khata' },
-                { id: 'suppliers', label: 'Suppliers Master', desc: 'Distributor directory & terms', icon: Building2 },
+                { id: 'customers', label: 'Customers (Khata)', desc: 'Builder & customer credit ledgers', icon: Users, badge: 'Khata' },
+                { id: 'suppliers', label: 'Suppliers Master', desc: 'Manufacturer & distributor directory', icon: Building2 },
                 { id: 'collections', label: 'Collections', desc: 'Outstanding dues & receipts', icon: Wallet, phase: 2 },
                 { id: 'gst_accounts', label: 'GST & Ledgers', desc: 'GSTR-1, HSN tax summary & ledgers', icon: ReceiptText },
                 { id: 'reports', label: 'Reports & Analytics', desc: 'Sales, margins & dead stock BI', icon: BarChart3, phase: 2 },
               ],
             },
             {
-              category: 'Clinical, Security & Settings',
+              category: 'Security, Operations & Settings',
               items: [
-                { id: 'compliance', label: 'Compliance & H1', desc: 'Schedule H/H1 registers & doctors', icon: ShieldCheck, badge: 'Form 20' },
-                { id: 'clinical_support', label: 'Clinical AI Support', desc: 'Drug interactions & dosage checker', icon: Brain, badge: 'AI' },
-                { id: 'tasks', label: 'Operational Tasks', desc: 'Daily SOP checklists & alerts', icon: CheckSquare },
+                { id: 'tasks', label: 'Operational Tasks', desc: 'Daily yard SOP checklists & alerts', icon: CheckSquare },
                 { id: 'audit_centre', label: 'Audit Centre', desc: 'Tamper-evident system logs', icon: ShieldAlert },
                 { id: 'activity_centre', label: 'Activity Ledger', desc: 'Operational timeline & events', icon: Activity },
-                { id: 'settings', label: 'Settings & Staff', desc: 'Branch config & role permissions', icon: Settings },
+                { id: 'settings', label: 'Settings & Staff', desc: 'Showroom config & role permissions', icon: Settings },
               ],
             },
           ].map((section, sIdx) => {
             const visibleItems = section.items.filter((item) => {
               switch (item.id) {
                 case 'dashboard':
-                case 'compliance':
                 case 'tasks':
-                case 'clinical_support':
                 case 'audit_centre':
                 case 'activity_centre':
                   return true;

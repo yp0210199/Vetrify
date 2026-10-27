@@ -144,11 +144,11 @@ export const SettingsView: React.FC = () => {
         />
         <KpiCard
           title="Statutory Compliance"
-          value={organization?.settings?.fefoStrictEnforcement ? 'FEFO Strict' : 'Standard'}
+          value={organization?.settings?.fefoStrictEnforcement ? 'FIFO/Lot Strict' : 'Standard'}
           subtitle={
-            organization?.drugLicenseNumber
-              ? `DL: ${organization.drugLicenseNumber}`
-              : 'Form 20B/21B Active'
+            organization?.gstin
+              ? `GSTIN: ${organization.gstin}`
+              : 'GST Compliant'
           }
           icon={<ShieldCheck className="w-5 h-5 text-amber-600" />}
         />

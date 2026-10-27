@@ -41,113 +41,113 @@ export const FutureModuleView: React.FC<FutureModuleViewProps> = ({
     }
   > = {
     wholesale: {
-      title: 'Wholesale B2B Billing',
+      title: 'Wholesale B2B Billing & Builder Credit',
       phase: 2,
-      subtitle: 'Bulk orders, distributor discounting, credit terms, and multi-tier pricing',
+      subtitle: 'Bulk tile orders, contractor discounting, credit terms, and multi-tier project pricing',
       description:
-        'Manage institutional pharmacy sales, bulk stock orders, and trade invoices with automated credit limit enforcement.',
+        'Manage institutional builder orders, bulk vitrified slab shipments, and commercial trade invoices with automated credit limit enforcement.',
       plannedFeatures: [
-        'Multi-tier wholesale rate cards & volume discounts',
-        'Customer credit limits & ledger balancing',
-        'E-Way bill generation & B2B GST compliance',
-        'Bulk order pick-list & dispatch manifests',
+        'Multi-tier wholesale rate cards & volume slab discounts',
+        'Builder & contractor credit limits & ledger balancing',
+        'E-Way bill generation & B2B Ceramic GST compliance',
+        'Bulk order pick-list & yard dispatch manifests',
       ],
       icon: Boxes,
     },
     purchases: {
-      title: 'Purchases & Goods Inwards',
+      title: 'Purchases & Yard Inwards',
       phase: 2,
-      subtitle: 'Supplier purchase orders, inwards batch inspection, and vendor bills',
+      subtitle: 'Factory purchase orders, container inwards inspection, and vendor bills',
       description:
-        'Streamline procurement with automated purchase order generation based on min/max inventory levels and FEFO batch reconciliation.',
+        'Streamline procurement with automated purchase order generation based on min/max tile inventory levels and shade/lot reconciliation.',
       plannedFeatures: [
-        'Automated reorder suggestion engine based on sales velocity',
-        'Direct supplier invoice entry with GST & discount matching',
-        'Batch creation & barcoding on goods inwards',
-        'Supplier returns & debit notes management',
+        'Automated reorder suggestion engine based on tile sales velocity',
+        'Direct factory invoice entry with GST & freight matching',
+        'Shade/Lot creation & box barcoding on goods inwards',
+        'Supplier returns & transit damage debit notes management',
       ],
       icon: ShoppingBag,
     },
     sales_returns: {
       title: 'Sales & Returns Ledger',
       phase: 2,
-      subtitle: 'Counter returns, credit notes, customer refund history, and replacement ledger',
+      subtitle: 'Showroom returns, credit notes, customer refund history, and tile replacement ledger',
       description:
-        'Track all historical sales invoices, process customer medicine returns against original batch numbers, and issue credit vouchers.',
+        'Track all historical sales invoices, process customer box returns against original shade/lot numbers, and issue credit vouchers.',
       plannedFeatures: [
-        'Instant bill lookup by barcode or customer phone',
-        'Batch verification for returned pharmaceutical items',
-        'Automatic inventory restocking or quarantine routing',
+        'Instant bill lookup by barcode, invoice number or customer phone',
+        'Shade & Lot verification for returned ceramic items',
+        'Automatic yard restocking or breakage routing',
         'Credit voucher & cash refund processing',
       ],
       icon: RotateCcw,
     },
     customers: {
-      title: 'Customers & Chronic Care Management',
+      title: 'Customers, Builders & Project Khata',
       phase: 2,
-      subtitle: 'Patient profiles, chronic disease refill cycles, loyalty points, and credit accounts',
+      subtitle: 'Architect profiles, homeowner project khata, loyalty points, and credit accounts',
       description:
-        'Maintain comprehensive patient records, track chronic medication refilling reminders, and manage customer credit ledgers.',
+        'Maintain comprehensive contractor records, track site delivery schedules, and manage builder credit ledgers.',
       plannedFeatures: [
-        'Chronic patient refill scheduler & WhatsApp alert foundation',
-        'Customer loyalty points earning & redemption rules',
-        'Outstanding khata balance & payment receipt generation',
-        'Prescription history archive with doctor tags',
+        'Project Khata ledger & WhatsApp payment alert foundation',
+        'Architect & Plumber referral commission tracking',
+        'Outstanding site balance & payment receipt generation',
+        'Quotations and estimate history archive with site tags',
       ],
       icon: Users,
     },
     suppliers: {
-      title: 'Suppliers & Distributors Master',
+      title: 'Suppliers & Tile Manufacturers Master',
       phase: 2,
-      subtitle: 'Pharmaceutical distributors, drug license records, GSTIN, and payment terms',
+      subtitle: 'Ceramic manufacturers, factory GSTIN, freight agreements, and payment terms',
       description:
-        'Maintain complete distributor records, track payment schedules, drug licenses, and purchase volume histories.',
+        'Maintain complete manufacturer records, track freight schedules, factory GSTINs, and purchase volume histories.',
       plannedFeatures: [
-        'Distributor drug license verification & expiry monitoring',
-        'Credit period & payment milestone tracking',
-        'Purchase volume analytics & rebate reconciliation',
-        'Direct purchase order dispatch foundation',
+        'Tile factory GSTIN verification & credit period monitoring',
+        'Freight & Hamali loading charge agreement tracking',
+        'Purchase volume analytics & tile rebate reconciliation',
+        'Direct factory purchase order dispatch foundation',
       ],
       icon: Building2,
     },
     collections: {
       title: 'Collections & Receivables Aging',
       phase: 2,
-      subtitle: 'Customer credit aging (0-30, 31-60, 60+ days), reminders, and receipts',
+      subtitle: 'Builder credit aging (0-30, 31-60, 60+ days), site reminders, and receipts',
       description:
-        'Monitor outstanding receivables across retail chronic accounts and wholesale buyers with automated aging buckets.',
+        'Monitor outstanding receivables across retail homeowners and wholesale project contractors with automated aging buckets.',
       plannedFeatures: [
         'Aging analysis: 0-30, 31-60, 61-90, 90+ days breakdown',
-        'Automated payment reminder notifications',
+        'Automated payment reminder notifications for construction sites',
         'Multiple payment receipt logging (Cash, Cheque, NEFT, UPI)',
-        'Customer statement of accounts PDF generation',
+        'Customer statement of accounts PDF generation for builders',
       ],
       icon: Wallet,
     },
     ecommerce: {
-      title: 'E-commerce & Digital Storefront',
+      title: 'E-commerce & Digital Tile Storefront',
       phase: 4,
-      subtitle: 'Online medicine catalog, consumer orders, delivery dispatch, and prescription uploads',
+      subtitle: 'Online tile catalog, room visualizer preview, consumer orders, and yard dispatch',
       description:
-        'Direct-to-consumer pharmacy web store integrated seamlessly with live inventory and FEFO batch allocation.',
+        'Direct-to-consumer showroom web store integrated seamlessly with live godown inventory and shade allocation.',
       plannedFeatures: [
-        'Real-time inventory synchronization with web store',
-        'Digital prescription upload & pharmacist verification flow',
-        'Delivery boy dispatch & route tracking foundation',
-        'Customer order status notifications',
+        'Real-time inventory synchronization with web catalog',
+        'Digital room area & box coverage calculator flow',
+        'Tempo / truck loading dispatch & route tracking foundation',
+        'Customer site delivery status notifications',
       ],
       icon: Globe,
     },
     reports: {
-      title: 'Analytics & Financial Reports',
+      title: 'Analytics & Tile Financial Reports',
       phase: 2,
-      subtitle: 'Profit & loss, sales analysis, fast/slow moving items, and doctor wise sales',
+      subtitle: 'Profit & loss, sales analysis, fast/slow moving shades, and architect wise sales',
       description:
-        'Generate deep operational insights, sales breakdowns by department, margins by salt, and doctor referral reports.',
+        'Generate deep operational insights, sales breakdowns by tile category, gross margins per sq. ft, and architect referral reports.',
       plannedFeatures: [
         'Daily, weekly, and monthly P&L financial summaries',
-        'Fast-moving vs non-moving inventory dead-stock report',
-        'Prescription doctor referral sales analysis',
+        'Fast-moving vs non-moving slab inventory report',
+        'Architect & interior designer referral sales analysis',
         'Tax & GST audit reports with 1-click export',
       ],
       icon: BarChart3,
@@ -155,42 +155,42 @@ export const FutureModuleView: React.FC<FutureModuleViewProps> = ({
     gst_accounts: {
       title: 'GST Filings & Financial Accounts',
       phase: 2,
-      subtitle: 'GSTR-1, GSTR-3B summaries, HSN summary, and Day Book reconciliation',
+      subtitle: 'GSTR-1, GSTR-3B summaries, HSN 6907 summary, and Day Book reconciliation',
       description:
-        'Pharmacy-specific GST calculation, HSN-wise tax breakdowns, and end-of-day register reconciliation.',
+        'Ceramic-specific GST calculation, HSN-wise tax breakdowns, and end-of-day register reconciliation.',
       plannedFeatures: [
         'GSTR-1 ready JSON/CSV export with B2B & B2C breakdown',
-        'HSN summary table with 5%, 12%, 18% tax distribution',
+        'HSN summary table with 18% (Tiles/Sanitary) tax distribution',
         'Daily cashier register variance & shift day book closing',
         'Bank deposit tracking & ledger integration',
       ],
       icon: ReceiptText,
     },
     tasks: {
-      title: 'Pharmacy Tasks & Daily Checklists',
+      title: 'Yard Tasks & Daily Checklists',
       phase: 2,
-      subtitle: 'Temperature logs, cleaning checklists, shift handovers, and compliance audits',
+      subtitle: 'Godown loading logs, breakage audits, shift handovers, and site delivery checklists',
       description:
-        'Track statutory pharmacy compliance requirements, daily cold-chain temperature recordings, and staff shift checklists.',
+        'Track yard operations, truck loading safety recordings, and godown staff shift checklists.',
       plannedFeatures: [
-        'Refrigerator temperature log (2°C - 8°C twice daily)',
-        'Controlled drug register physical verification logs',
-        'Shift handover cash count & pending orders checklist',
-        'Statutory drug inspector audit readiness checklist',
+        'Daily yard loading gate pass audit logs',
+        'Transit breakage & damaged box physical verification logs',
+        'Shift handover cash count & pending site deliveries',
+        'Yard inventory audit readiness checklist',
       ],
       icon: CheckSquare,
     },
     settings: {
-      title: 'Pharmacy System Settings',
+      title: 'Vetrify ERP System Settings',
       phase: 2,
-      subtitle: 'Store branches, drug licenses, print templates, invoice series, and user roles',
+      subtitle: 'Showroom branches, godowns, print templates, invoice series, and user roles',
       description:
-        'Configure your pharmacy operating entities, billing serial numbers, thermal printer templates, and staff permission matrices.',
+        'Configure your ceramic operating entities, billing serial numbers, tax invoice templates, and staff permission matrices.',
       plannedFeatures: [
-        'Branch configuration & multi-store inventory routing',
-        'Drug License (DL 20B/21B) & FSSAI registration profile',
-        'Thermal receipt (2-inch, 3-inch, A4, A5) design templates',
-        'Role-based access control (Pharmacist, Cashier, Store Manager, Owner)',
+        'Branch & Godown yard configuration with inter-yard routing',
+        'GSTIN & statutory business registration profiles',
+        'Invoice & Yard Gate Pass print design templates',
+        'Role-based access control (Showroom Salesman, Yard Manager, Accountant, Owner)',
       ],
       icon: Settings,
     },
@@ -199,13 +199,19 @@ export const FutureModuleView: React.FC<FutureModuleViewProps> = ({
   const config = moduleConfigs[moduleId] || {
     title: 'Operational Module',
     phase: 2,
-    subtitle: 'Scheduled in Vetrify roadmap',
-    description: 'This operational module is part of the next implementation phase.',
-    plannedFeatures: ['Core data tables', 'Role access control', 'Export utilities'],
-    icon: Lock,
+    subtitle: 'Advanced ERP capability currently under phased deployment',
+    description:
+      'This feature is scheduled in the Vetrify roadmap for multi-branch sync and yard logistics.',
+    plannedFeatures: [
+      'Multi-branch state synchronization',
+      'Advanced audit trails and event streaming',
+      'Role-based granular access control',
+      'Export to Excel / PDF reporting suite',
+    ],
+    icon: Sparkles,
   };
 
-  const Icon = config.icon;
+  const IconComponent = config.icon;
 
   return (
     <div className="space-y-6">
@@ -213,65 +219,63 @@ export const FutureModuleView: React.FC<FutureModuleViewProps> = ({
         title={config.title}
         subtitle={config.subtitle}
         badge={
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309] text-xs font-bold border border-[#FCD34D]">
-            Phase {config.phase} Roadmap
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200">
+            <Lock className="w-3 h-3 text-amber-600" /> Phase {config.phase} Roadmap
           </span>
         }
         primaryAction={
           <Button
             variant="primary"
             size="md"
-            onClick={() => onNavigateToActive('dashboard')}
+            icon={ArrowRight}
+            onClick={() => onNavigateToActive('pos')}
           >
-            Back to Active Dashboard
+            Go to Showroom POS Billing
           </Button>
         }
       />
 
-      {/* Blueprint Architecture Card */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 shadow-xs max-w-4xl mx-auto text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-[#0D5C63]/10 text-[#0D5C63] flex items-center justify-center mx-auto shadow-xs">
-          <Icon className="w-8 h-8" />
+      {/* Main Roadmap Card */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 sm:p-8 shadow-2xs space-y-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#E6F4F1] text-[#0D5C63] flex items-center justify-center shrink-0">
+            <IconComponent className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-[#0B1F33]">{config.title}</h3>
+            <p className="text-xs text-[#475569] mt-1 leading-relaxed max-w-2xl">{config.description}</p>
+          </div>
         </div>
 
-        <div className="max-w-xl mx-auto">
-          <h3 className="text-xl font-extrabold text-[#0B1F33]">{config.title}</h3>
-          <p className="text-xs text-[#64748B] mt-2 leading-relaxed">{config.description}</p>
-        </div>
-
-        {/* Planned Capabilities Grid */}
-        <div className="pt-4 border-t border-[#F1F5F9] text-left">
-          <h4 className="text-xs font-bold text-[#0D5C63] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" /> Planned Pharmaceutical Features for Phase {config.phase}
+        {/* Planned Features List */}
+        <div>
+          <h4 className="text-xs font-extrabold text-[#0B1F33] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-[#0D5C63]" /> Core Vetrify ERP Features in Development
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {config.plannedFeatures.map((feat, i) => (
+            {config.plannedFeatures.map((feature, idx) => (
               <div
-                key={i}
-                className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5 text-xs text-[#0B1F33]"
+                key={idx}
+                className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center gap-3"
               >
-                <ShieldCheck className="w-4 h-4 text-[#2FA36A] flex-shrink-0 mt-0.5" />
-                <span className="font-medium">{feat}</span>
+                <div className="w-2 h-2 rounded-full bg-[#0D5C63] shrink-0" />
+                <span className="text-xs font-semibold text-[#334155]">{feature}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Quick Nav Action */}
-        <div className="pt-4 flex items-center justify-center gap-3">
+        <div className="p-4 rounded-xl bg-[#E6F4F1]/60 border border-[#0D5C63]/20 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2 text-xs font-medium text-[#0D5C63]">
+            <Sparkles className="w-4 h-4" />
+            <span>Showroom Billing POS, Room Coverage Calculator, and Yard Gate Pass are live!</span>
+          </div>
           <Button
-            variant="secondary"
-            size="md"
+            variant="outline"
+            size="sm"
             onClick={() => onNavigateToActive('inventory')}
           >
-            Explore Inventory Master
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => onNavigateToActive('pos')}
-          >
-            Open Retail POS
+            Open Tile Catalog
           </Button>
         </div>
       </div>

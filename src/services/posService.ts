@@ -15,7 +15,6 @@ import { db } from '../lib/firebase/config';
 import {
   SaleInvoice,
   SaleInvoiceItem,
-  PrescriptionDetails,
   PaymentMode,
   PosProductItem,
   PosCartItem,
@@ -109,7 +108,11 @@ export function calculateLineTaxes(
 /**
  * Calculate complete bill financial summary
  */
-export function calculateBillSummary(items: PosCartItem[]): PosBillSummary {
+export function calculateBillSummary(
+  items: PosCartItem[],
+  freightAmount = 0,
+  loadingUnloadingAmount = 0
+): PosBillSummary {
   let subtotal = 0;
   let totalDiscount = 0;
   let taxableAmount = 0;
@@ -128,7 +131,7 @@ export function calculateBillSummary(items: PosCartItem[]): PosBillSummary {
   });
 
   const totalTax = cgstAmount + sgstAmount;
-  const rawTotal = taxableAmount + totalTax;
+  const rawTotal = taxableAmount + totalTax + freightAmount + loadingUnloadingAmount;
   const grandTotal = Math.round(rawTotal);
   const roundOff = Math.round((grandTotal - rawTotal) * 100) / 100;
 
@@ -138,6 +141,8 @@ export function calculateBillSummary(items: PosCartItem[]): PosBillSummary {
     taxableAmount: Math.round(taxableAmount * 100) / 100,
     cgstAmount: Math.round(cgstAmount * 100) / 100,
     sgstAmount: Math.round(sgstAmount * 100) / 100,
+    freightAmount,
+    loadingUnloadingAmount,
     roundOff,
     grandTotal,
     totalSavings: Math.round(totalDiscount * 100) / 100,
@@ -176,7 +181,6 @@ export const posService = {
     const { products } = await getProducts(organizationId, {
       searchQuery: options.searchQuery,
       categoryId: options.categoryId,
-      schedule: options.schedule as any,
       status: 'active',
       pageSize: options.pageSize || 60,
     });
@@ -209,28 +213,32 @@ export const posService = {
             ? earliestBatch.mrp || p.defaultMrp
             : p.defaultMrp;
 
-          posProducts.push({
-            id: p.id,
-            name: p.productName,
-            brand: p.brand,
-            composition: p.composition,
-            sku: p.sku,
-            dosageForm: p.dosageForm || 'Unit',
-            batchId: earliestBatch?.id || '',
-            batch: earliestBatch?.batchNumber || 'NO BATCH',
-            expiry: earliestBatch ? formatBatchExpiry(earliestBatch.expiryDate) : 'N/A',
-            stock: earliestBatch ? earliestBatch.availableQuantity : 0,
-            unit: p.packaging?.packUnit || p.packaging?.baseUnit || 'Unit',
-            mrp: defaultMrp,
-            price: defaultPrice,
-            gst: p.gstRate ?? 12,
-            hsnCode: p.hsnCode || '3004',
-            schedule: (p.schedule as any) || 'OTC',
-            isPrescriptionRequired: p.requiresPrescription || p.schedule === 'H' || p.schedule === 'H1' || p.schedule === 'X',
-            isColdChain: p.isColdChain || false,
-            hasBatches: batches.length > 0,
-            totalStoreStock: totalStock,
-          });
+            posProducts.push({
+              id: p.id,
+              name: p.productName,
+              brand: p.brand,
+              sku: p.sku,
+              batchId: earliestBatch?.id || '',
+              batch: earliestBatch?.batchNumber || 'NO LOT',
+              expiry: earliestBatch ? formatBatchExpiry(earliestBatch.expiryDate) : 'N/A',
+              stock: earliestBatch ? earliestBatch.availableQuantity : 0,
+              unit: p.packaging?.baseUnit || p.packaging?.packUnit || 'Box',
+              mrp: defaultMrp,
+              price: defaultPrice,
+              gst: p.gstRate ?? 18,
+              hsnCode: p.hsnCode || '6907',
+              hasBatches: batches.length > 0,
+              totalStoreStock: totalStock,
+              shadeNumber: earliestBatch?.shadeNumber || '',
+              toneCode: earliestBatch?.toneCode || '',
+              caliberCode: earliestBatch?.caliberCode || '',
+              finish: p.finish || (p as any).tileDetails?.finish || '',
+              grade: p.grade || earliestBatch?.grade || 'Standard',
+              dimensionsMm: (p as any).tileDetails?.dimensionsMm,
+              coveragePerBoxSqFt: p.packaging?.coveragePerBoxSqFt,
+              piecesPerBox: p.packaging?.piecesPerBox,
+              weightPerBoxKg: p.packaging?.weightPerBoxKg,
+            });
         } catch (err) {
           console.error(`Error loading batches for product ${p.id}:`, err);
         }
@@ -271,7 +279,8 @@ export const posService = {
     customerPhone?: string;
     paymentMode: PaymentMode;
     items: PosCartItem[];
-    prescription?: PrescriptionDetails | null;
+    freightAmount?: number;
+    loadingUnloadingAmount?: number;
     creditOverrideUsed?: boolean;
     clinicalOverrideReason?: string | null;
     caller: { uid: string; email?: string | null; displayName?: string | null };
@@ -285,6 +294,8 @@ export const posService = {
       customerPhone,
       paymentMode,
       items,
+      freightAmount = 0,
+      loadingUnloadingAmount = 0,
       prescription,
       creditOverrideUsed = false,
       clinicalOverrideReason = null,
@@ -350,8 +361,14 @@ export const posService = {
         sku: item.sku,
         batchId: item.batchId,
         batchNumber: item.batch,
+        shadeNumber: item.shadeNumber,
+        toneCode: item.toneCode,
+        caliberCode: item.caliberCode,
+        finish: item.finish,
+        dimensionsMm: item.dimensionsMm,
+        coverageSqFt: item.sqFtCalculated || (item.coveragePerBoxSqFt ? item.coveragePerBoxSqFt * item.qty : undefined),
         expiryDate: item.expiry,
-        hsnCode: item.hsnCode || '3004',
+        hsnCode: item.hsnCode || '6907',
         schedule: item.schedule,
         isPrescriptionRequired: Boolean(item.isPrescriptionRequired),
         quantity: item.qty,
@@ -371,7 +388,7 @@ export const posService = {
       };
     });
 
-    const summary = calculateBillSummary(items);
+    const summary = calculateBillSummary(items, freightAmount, loadingUnloadingAmount);
 
     const invoiceRef = getInvoiceDocRef(organizationId, invoiceId);
 
@@ -547,6 +564,8 @@ export const posService = {
         cgstTotal: summary.cgstAmount,
         sgstTotal: summary.sgstAmount,
         totalTax: Math.round((summary.cgstAmount + summary.sgstAmount) * 100) / 100,
+        freightAmount: summary.freightAmount,
+        loadingUnloadingAmount: summary.loadingUnloadingAmount,
         roundOff: summary.roundOff,
         grandTotal: summary.grandTotal,
         hasScheduleHDrugs,
@@ -626,47 +645,7 @@ export const posService = {
         updatedAt: serverTimestamp(),
       });
 
-      // Generate Immutable Schedule H1 / H Compliance Register Entry
-      if (hasScheduleHDrugs && prescription) {
-        const restrictedItems = saleInvoiceItems.filter(
-          (item) => item.schedule === 'H' || item.schedule === 'H1' || item.schedule === 'X'
-        );
-
-        if (restrictedItems.length > 0) {
-          const entryId = `h1_reg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-          const regRef = doc(db, 'organizations', organizationId, 'scheduleH1Register', entryId);
-
-          const regPayload = {
-            id: entryId,
-            organizationId,
-            storeId,
-            invoiceId,
-            invoiceNumber,
-            patientName: (prescription.patientName || '').trim(),
-            patientAge: typeof prescription.patientAge === 'number' ? prescription.patientAge : Number(prescription.patientAge) || 0,
-            patientGender: prescription.patientGender || 'male',
-            patientPhone: (prescription.patientPhone || '').trim() || null,
-            doctorName: (prescription.doctorName || '').trim(),
-            doctorRegNo: (prescription.doctorRegNo || '').trim(),
-            hospitalClinic: (prescription.hospitalClinic || '').trim() || null,
-            items: restrictedItems.map((item) => ({
-              productId: item.productId,
-              productName: item.productName,
-              batchNumber: item.batchNumber,
-              quantity: item.quantity,
-              expiryDate: item.expiryDate,
-              manufacturerName: item.brand || '',
-              schedule: item.schedule as 'H' | 'H1' | 'X',
-            })),
-            createdByUid: caller.uid,
-            createdByName: caller.displayName || caller.email || 'Pharmacist',
-            createdAt: serverTimestamp(),
-            prescriptionUrl: prescription.prescriptionUrl || prescription.secureUrl || '',
-          };
-
-          transaction.set(regRef, sanitizeFirestorePayload(regPayload));
-        }
-      }
+      // Transaction complete
     });
 
     // 5. Post-transaction Audit Logging
@@ -783,8 +762,6 @@ export const posService = {
       totalTax: Math.round((summary.cgstAmount + summary.sgstAmount) * 100) / 100,
       roundOff: summary.roundOff,
       grandTotal: summary.grandTotal,
-      hasScheduleHDrugs,
-      prescription: hasScheduleHDrugs ? prescription : null,
       status: 'completed',
       createdByUid: caller.uid,
       createdByName: caller.displayName || caller.email || 'Cashier',

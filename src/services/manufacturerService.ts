@@ -4,6 +4,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -110,7 +111,6 @@ export async function createManufacturer(
     email: payload.email ? payload.email.trim() : '',
     phone: payload.phone ? payload.phone.trim() : '',
     gstin: payload.gstin ? payload.gstin.trim().toUpperCase() : '',
-    drugLicenseNumber: payload.drugLicenseNumber ? payload.drugLicenseNumber.trim() : '',
     status: payload.status || 'active',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -140,12 +140,22 @@ export async function createManufacturer(
 }
 
 /**
- * Seed top Indian pharmaceutical manufacturers
+ * Delete a manufacturer master
+ */
+export async function deleteManufacturer(
+  organizationId: string,
+  manufacturerId: string
+): Promise<void> {
+  const ref = doc(db, 'organizations', organizationId, 'manufacturers', manufacturerId);
+  await deleteDoc(ref);
+}
+
+/**
+ * Seed default manufacturers
  */
 export async function seedDefaultManufacturers(
   organizationId: string,
   caller: { uid: string; email?: string | null; displayName?: string | null }
 ): Promise<Manufacturer[]> {
-  // Empty implementation to comply with strict production policies against automatic seeding of dummy/demo manufacturers.
   return [];
 }

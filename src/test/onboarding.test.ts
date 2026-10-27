@@ -1,5 +1,5 @@
 /**
- * Vetrify Phase 1 Step 3B - Onboarding & Owner Bootstrap Integration Test Suite
+ * Vetrify Tiles & Sanitaryware Showroom Onboarding & Owner Bootstrap Integration Test Suite
  */
 import {
   isValidEmail,
@@ -19,7 +19,7 @@ function assert(condition: boolean, message: string) {
   console.log(`[PASS] ${message}`);
 }
 
-console.log('=== RX OMNI ONBOARDING & BOOTSTRAP TEST SUITE ===');
+console.log('=== VETRIFY SHOWROOM ONBOARDING & BOOTSTRAP TEST SUITE ===');
 
 // 1. Validation tests
 console.log('\n--- 1. Client-Side Form Validation Tests ---');
@@ -27,7 +27,7 @@ assert(isValidGstin('07AAAAA0000A1Z5') === true, 'Valid GSTIN format accepted');
 assert(isValidGstin('INVALID_GSTIN') === false, 'Invalid GSTIN format rejected');
 assert(isValidGstin('12345') === false, 'Short GSTIN rejected');
 
-assert(isValidEmail('owner@pharmacy.com') === true, 'Valid email accepted');
+assert(isValidEmail('owner@tileshowroom.com') === true, 'Valid email accepted');
 assert(isValidEmail('invalid-email') === false, 'Invalid email rejected');
 
 assert(isValidPostalCode('110001', 'India') === true, 'Valid Indian 6-digit PIN code accepted');
@@ -43,8 +43,8 @@ console.log('\n--- 2. Tenant Isolation & Bootstrap Schema Tests ---');
 
 const mockOrg = {
   id: 'org_test_123',
-  name: 'Test Healthcare',
-  legalName: 'Test Healthcare Pvt Ltd',
+  name: 'Kajaria Studio Showroom',
+  legalName: 'Kajaria Ceramics & Tiles Pvt Ltd',
   currency: 'INR' as const,
   timezone: 'Asia/Kolkata' as const,
   status: 'active' as const,
@@ -62,10 +62,10 @@ assert(validateOrganization(invalidOrgWithOwnerUid) === false, 'Organization wit
 const mockStore = {
   id: 'str_main_123',
   organizationId: 'org_test_123',
-  name: 'Test Healthcare - Main Branch',
-  code: 'MAIN-01',
+  name: 'Main Tiles & Sanitaryware Showroom',
+  code: 'SHOWROOM-01',
   address: {
-    street: '123 Health Ave',
+    street: '45 Marble & Tile Plaza',
     city: 'Mumbai',
     state: 'Maharashtra',
     postalCode: '400001',
@@ -83,8 +83,8 @@ const mockOwnerStaff = {
   allStoresAccess: true,
   storeIds: ['str_main_123'],
   roleId: 'owner' as const,
-  displayName: 'Test Owner',
-  email: 'owner@testpharmacy.com',
+  displayName: 'Showroom Owner',
+  email: 'owner@tileshowroom.com',
   status: 'active' as const,
 };
 
@@ -97,7 +97,7 @@ console.log('\n--- 3. Concurrency / Duplicate Submission Protection Simulation -
 let inFlight = false;
 let callCount = 0;
 
-function simulateCreatePharmacy() {
+function simulateCreateShowroom() {
   if (inFlight) {
     return 'BLOCKED_DUPLICATE';
   }
@@ -107,13 +107,13 @@ function simulateCreatePharmacy() {
   return 'SUCCESS';
 }
 
-const firstCall = simulateCreatePharmacy();
-const secondCall = simulateCreatePharmacy();
-const thirdCall = simulateCreatePharmacy();
+const firstCall = simulateCreateShowroom();
+const secondCall = simulateCreateShowroom();
+const thirdCall = simulateCreateShowroom();
 
 assert(firstCall === 'SUCCESS', 'First submission accepted');
 assert(secondCall === 'BLOCKED_DUPLICATE', 'Rapid second submission safely blocked');
 assert(thirdCall === 'BLOCKED_DUPLICATE', 'Rapid third submission safely blocked');
 assert(callCount === 1, 'Only one provisioning operation executed');
 
-console.log('\nALL ONBOARDING & BOOTSTRAP TESTS PASSED PERFECTLY.');
+console.log('\nALL SHOWROOM ONBOARDING & BOOTSTRAP TESTS PASSED PERFECTLY.');

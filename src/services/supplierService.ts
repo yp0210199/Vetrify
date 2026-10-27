@@ -137,9 +137,9 @@ export const supplierService = {
     const ref = getSuppliersRef(organizationId);
     let q;
     if (statusFilter && statusFilter !== 'all') {
-      q = query(ref, where('status', '==', statusFilter), orderBy('name', 'asc'));
+      q = query(ref, where('status', '==', statusFilter));
     } else {
-      q = query(ref, orderBy('name', 'asc'));
+      q = query(ref);
     }
 
     const snap = await getDocs(q);
@@ -150,6 +150,8 @@ export const supplierService = {
         results.push(data as Supplier);
       }
     });
+
+    results.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     return results;
   },
 

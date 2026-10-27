@@ -11,6 +11,13 @@ import {
   Eye,
   RefreshCw,
   Tag,
+  Grid,
+  Box,
+  AlertTriangle,
+  Droplet,
+  Wrench,
+  Pipette,
+  Layers,
 } from 'lucide-react';
 import { PageHeader } from '../components/common/PageHeader';
 import { KpiCard } from '../components/ui/KpiCard';
@@ -25,9 +32,10 @@ import { ProductCsvImportDrawer } from '../components/inventory/ProductCsvImport
 import { MasterDataManagementModal } from '../components/inventory/MasterDataManagementModal';
 import { BatchLedgerPanel } from '../components/inventory/BatchLedgerPanel';
 import { BatchAdjustmentsPanel } from '../components/inventory/BatchAdjustmentsPanel';
+import { BreakageDamagePanel } from '../components/inventory/BreakageDamagePanel';
 import { TableSkeleton } from '../components/common/LoadingSkeleton';
 import { EmptyState } from '../components/common/EmptyState';
-import { Product } from '../types/product';
+import { Product, CategoryType } from '../types/product';
 import { getProducts } from '../services/productService';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { useAuth } from '../auth/AuthProvider';
@@ -36,14 +44,13 @@ import { safeToFixed } from '../lib/formatting/formatters';
 
 export const InventoryView: React.FC = () => {
   const { organization } = useWorkspace();
-  const { user } = useAuth();
-  const { success, error } = useToast();
+  const { error, success } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('products');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSchedule, setSelectedSchedule] = useState('all');
+  const [selectedCategoryType, setSelectedCategoryType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -60,10 +67,8 @@ export const InventoryView: React.FC = () => {
     if (!organization) return;
     try {
       setIsLoading(true);
-      const caller = { uid: user?.uid || 'usr_staff', email: user?.email, displayName: user?.displayName };
       const res = await getProducts(organization.id, {
         searchQuery,
-        schedule: selectedSchedule !== 'all' ? (selectedSchedule as any) : undefined,
         status: selectedStatus !== 'all' ? (selectedStatus as any) : 'active',
         pageSize: 50,
         lastDoc: reset ? null : lastDoc,
@@ -85,7 +90,7 @@ export const InventoryView: React.FC = () => {
     if (organization) {
       fetchProductsList(true);
     }
-  }, [organization?.id, selectedSchedule, selectedStatus]);
+  }, [organization?.id, selectedStatus]);
 
   useEffect(() => {
     if (selectedProduct && products.length > 0) {
@@ -118,32 +123,24 @@ export const InventoryView: React.FC = () => {
       'SKU',
       'Product Name',
       'Brand',
-      'Composition',
-      'Dosage Form',
-      'Strength',
-      'Manufacturer',
+      'Line Type',
       'Category',
-      'Schedule',
       'HSN Code',
       'GST Rate',
       'MRP',
       'Purchase Cost',
       'Sale Price',
-      'Rack Location',
+      'Godown Bay',
     ];
 
     const rows = products.map((p) => [
       p.sku,
       `"${p.productName.replace(/"/g, '""')}"`,
       `"${p.brand.replace(/"/g, '""')}"`,
-      `"${p.composition.replace(/"/g, '""')}"`,
-      p.dosageForm,
-      p.strength,
-      `"${p.manufacturerName.replace(/"/g, '""')}"`,
-      `"${p.categoryName.replace(/"/g, '""')}"`,
-      p.schedule,
-      p.hsnCode,
-      p.gstRate,
+      p.categoryType || 'tiles',
+      `"${(p.categoryName || 'General').replace(/"/g, '""')}"`,
+      p.hsnCode || '6907',
+      p.gstRate || 18,
       p.defaultMrp,
       p.defaultPurchaseCost,
       p.defaultSalePrice,
@@ -155,22 +152,46 @@ export const InventoryView: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `products_master_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `catalog_export_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
     success(`Exported ${products.length} product records.`, 'CSV Export Generated');
   };
 
+  // Filter client-side by category line
+  const filteredProducts = products.filter((p) => {
+    if (selectedCategoryType === 'all') return true;
+    return p.categoryType === selectedCategoryType;
+  });
+
+  const getItemSpecsLabel = (p: Product) => {
+    const type = p.categoryType || 'tiles';
+    switch (type) {
+      case 'tiles':
+        return `${p.tileDimensions || '600x1200 mm'} • ${p.surfaceFinish || 'Glossy'}`;
+      case 'sanitaryware':
+        return `${p.sanitaryType || 'Basin'} • ${p.mountingType || 'Wall-Hung'}`;
+      case 'faucets':
+        return `${p.fittingType || 'Diverter'} • ${p.materialFinish || 'Chrome'}`;
+      case 'adhesives':
+        return `${p.chemicalType || 'Tile Adhesive'} • ${p.packSizeKg || 20} Kg`;
+      case 'pipes':
+        return `${p.pipeType || 'CPVC Pipe'} • ${p.outerDiameter || '3/4"'}`;
+      default:
+        return p.brand;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Product & Master Data Catalog"
-        subtitle="Canonical Pharmacy Product Masters, Statutory Taxes, and Classifications"
+        title="Showroom Universal Catalog"
+        subtitle="Canonical Masters for Tiles, Sanitaryware, Faucets, Tile Adhesives & Plumbing Pipes"
         badge={
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E6F4F1] text-[#0D5C63] text-xs font-bold border border-[#0D5C63]/20">
-            Multi-Tenant Isolated
+            Multi-Category Showroom
           </span>
         }
         primaryAction={
@@ -183,7 +204,7 @@ export const InventoryView: React.FC = () => {
               setIsAddModalOpen(true);
             }}
           >
-            Add Medicine Master
+            Add Showroom SKU
           </Button>
         }
         secondaryActions={
@@ -194,7 +215,7 @@ export const InventoryView: React.FC = () => {
               icon={Settings}
               onClick={() => setIsMasterDataModalOpen(true)}
             >
-              Master Data Slabs
+              Master Slabs
             </Button>
             <Button
               variant="outline"
@@ -221,36 +242,37 @@ export const InventoryView: React.FC = () => {
         <KpiCard
           title="Active Master SKUs"
           value={products.length}
-          subValue="Canonical Products"
+          subValue="Total Catalog SKUs"
         />
         <KpiCard
-          title="Schedule H/H1 Restricted"
-          value={products.filter((p) => p.schedule === 'H' || p.schedule === 'H1').length}
-          subValue="Rx Required"
+          title="Tiles & Slabs"
+          value={products.filter((p) => p.categoryType === 'tiles' || !p.categoryType).length}
+          subValue="Vitrified / Ceramic"
         />
         <KpiCard
-          title="Cold Chain Managed"
-          value={products.filter((p) => p.isColdChain).length}
-          subValue="2°C - 8°C Items"
+          title="Sanitaryware SKUs"
+          value={products.filter((p) => p.categoryType === 'sanitaryware' || p.hsnCode === '6910').length}
+          subValue="Basins & WCs"
         />
         <KpiCard
-          title="Narcotic / Schedule X"
-          value={products.filter((p) => p.isNarcotic || p.schedule === 'X').length}
-          subValue="Strict Register"
+          title="Faucets & CP Fittings"
+          value={products.filter((p) => p.categoryType === 'faucets' || p.hsnCode === '8481').length}
+          subValue="Showers & Mixers"
         />
         <KpiCard
-          title="Master Categories"
-          value="7"
-          subValue="Configured Slabs"
+          title="Adhesives & Pipes"
+          value={products.filter((p) => p.categoryType === 'adhesives' || p.categoryType === 'pipes').length}
+          subValue="Chemicals & CPVC"
         />
       </div>
 
       {/* Sub-tabs Navigation */}
       <Tabs
         tabs={[
-          { id: 'products', label: 'Medicine Product Masters', count: products.length },
-          { id: 'batches', label: 'Batch Ledger (FEFO)' },
+          { id: 'products', label: 'All Showroom Masters', count: products.length },
+          { id: 'batches', label: 'Yard Shade & Lot Ledger' },
           { id: 'adjustments', label: 'Stock Audits & Adjustments' },
+          { id: 'breakage', label: 'Breakage & Transit Damage' },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
@@ -262,7 +284,7 @@ export const InventoryView: React.FC = () => {
           <div className="bg-white p-3.5 rounded-2xl border border-[#E2E8F0] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="w-full md:max-w-md">
               <SearchInput
-                placeholder="Search by product name, brand, salt composition, or SKU..."
+                placeholder="Search by model name, brand, SKU, or HSN..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -270,15 +292,16 @@ export const InventoryView: React.FC = () => {
 
             <div className="flex items-center gap-2.5 w-full md:w-auto overflow-x-auto no-scrollbar">
               <Select
-                value={selectedSchedule}
-                onChange={(e) => setSelectedSchedule(e.target.value)}
+                value={selectedCategoryType}
+                onChange={(e) => setSelectedCategoryType(e.target.value)}
                 className="text-xs"
               >
-                <option value="all">All Drug Schedules</option>
-                <option value="OTC">OTC (Over the Counter)</option>
-                <option value="H">Schedule H</option>
-                <option value="H1">Schedule H1</option>
-                <option value="X">Schedule X</option>
+                <option value="all">All Product Lines</option>
+                <option value="tiles">Tiles & Slabs</option>
+                <option value="sanitaryware">Sanitaryware</option>
+                <option value="faucets">Faucets & CP Fittings</option>
+                <option value="adhesives">Tile Adhesive & Grout</option>
+                <option value="pipes">Pipes & Plumbing</option>
               </Select>
 
               <Select
@@ -286,7 +309,7 @@ export const InventoryView: React.FC = () => {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="text-xs"
               >
-                <option value="active">Active Products</option>
+                <option value="active">Active Catalog</option>
                 <option value="inactive">Inactive</option>
                 <option value="archived">Archived</option>
                 <option value="all">All Statuses</option>
@@ -307,13 +330,13 @@ export const InventoryView: React.FC = () => {
           {/* Products Table */}
           {isLoading && products.length === 0 ? (
             <TableSkeleton rows={8} cols={8} />
-          ) : products.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center">
               <EmptyState
                 type="search"
-                title="No Medicine Products Found"
-                description="Create your first canonical pharmacy product master or upload a CSV catalog."
-                primaryActionLabel="Add New Medicine"
+                title="No Products Found"
+                description="Create your first canonical product master or select another category filter."
+                primaryActionLabel="Add New Product SKU"
                 onPrimaryAction={() => {
                   setSelectedProduct(null);
                   setIsAddModalOpen(true);
@@ -327,20 +350,19 @@ export const InventoryView: React.FC = () => {
                   <thead>
                     <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] font-bold select-none">
                       <th className="py-3.5 px-3">SKU & Image</th>
-                      <th className="py-3.5 px-3 min-w-[220px]">Medicine Name & Salt Composition</th>
-                      <th className="py-3.5 px-3">Category & Mfr</th>
-                      <th className="py-3.5 px-3">Schedule</th>
-                      <th className="py-3.5 px-3 text-right">Default MRP</th>
+                      <th className="py-3.5 px-3 min-w-[220px]">Product Model & Specifications</th>
+                      <th className="py-3.5 px-3">Product Line</th>
+                      <th className="py-3.5 px-3">Brand & Category</th>
                       <th className="py-3.5 px-3 text-right">Purchase Cost</th>
                       <th className="py-3.5 px-3 text-right">Sale Price</th>
                       <th className="py-3.5 px-3">GST Slab</th>
-                      <th className="py-3.5 px-3">Shelf Rack</th>
+                      <th className="py-3.5 px-3">Godown Bay</th>
                       <th className="py-3.5 px-3">Status</th>
                       <th className="py-3.5 px-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F1F5F9]">
-                    {products.map((prod) => (
+                    {filteredProducts.map((prod) => (
                       <tr
                         key={prod.id}
                         onClick={() => handleRowClick(prod)}
@@ -351,9 +373,7 @@ export const InventoryView: React.FC = () => {
                             <ProductImage
                               size="sm"
                               src={prod.mediaUrl || prod.imageUrl}
-                              dosageForm={prod.dosageForm}
-                              schedule={prod.schedule}
-                              isColdChain={prod.isColdChain}
+                              dosageForm={prod.categoryType || 'tiles'}
                             />
                             <span className="font-mono text-[10px] font-bold text-[#64748B]">{prod.sku}</span>
                           </div>
@@ -363,41 +383,32 @@ export const InventoryView: React.FC = () => {
                             <span className="font-extrabold text-[#0B1F33] text-xs group-hover:text-[#0D5C63] transition-colors block">
                               {prod.productName}
                             </span>
-                            <p className="text-[11px] text-[#64748B] truncate mt-0.5">
-                              <strong className="text-[#334155]">{prod.brand}</strong> • <em>{prod.composition}</em> ({prod.strength})
+                            <p className="text-[11px] text-[#0D5C63] font-semibold truncate mt-0.5">
+                              {getItemSpecsLabel(prod)}
                             </p>
                           </div>
                         </td>
                         <td className="py-3 px-3">
-                          <span className="font-semibold text-[#0B1F33] block">{prod.categoryName || 'General'}</span>
-                          <span className="text-[10px] text-[#64748B] block truncate max-w-[140px]">{prod.manufacturerName}</span>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                            prod.schedule === 'OTC'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : prod.schedule === 'H1' || prod.schedule === 'X'
-                              ? 'bg-red-100 text-red-800 border border-red-300'
-                              : 'bg-amber-50 text-amber-800 border border-amber-200'
-                          }`}>
-                            {prod.schedule}
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#E6F4F1] text-[#0D5C63] uppercase border border-[#0D5C63]/20">
+                            {prod.categoryType || 'tiles'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono-num font-semibold text-[#0B1F33]">
-                          ₹{safeToFixed(prod.defaultMrp)}
+                        <td className="py-3 px-3">
+                          <span className="font-semibold text-[#0B1F33] block">{prod.brand}</span>
+                          <span className="text-[10px] text-[#64748B] block truncate max-w-[140px]">{prod.categoryName || 'General'}</span>
                         </td>
                         <td className="py-3 px-3 text-right font-mono-num text-[#64748B]">
                           ₹{safeToFixed(prod.defaultPurchaseCost)}
                         </td>
                         <td className="py-3 px-3 text-right font-mono-num font-bold text-[#0D5C63]">
-                          ₹{safeToFixed(prod.defaultSalePrice)}
+                          ₹{safeToFixed(prod.defaultSalePrice)} / {prod.packaging?.packUnit || 'Unit'}
                         </td>
                         <td className="py-3 px-3">
-                          <span className="font-mono text-[11px] font-bold text-[#334155]">{prod.gstRate}%</span>
+                          <span className="font-mono text-[11px] font-bold text-[#334155]">{prod.gstRate || 18}%</span>
                         </td>
                         <td className="py-3 px-3">
                           <span className="font-mono text-xs font-semibold px-2 py-0.5 bg-[#F1F5F9] rounded text-[#475569]">
-                            {prod.rackLocation || '—'}
+                            {prod.rackLocation || 'Yard Bay A-01'}
                           </span>
                         </td>
                         <td className="py-3 px-3">
@@ -427,7 +438,7 @@ export const InventoryView: React.FC = () => {
                     onClick={() => fetchProductsList(false)}
                     isLoading={isLoading}
                   >
-                    Load More Products
+                    Load More Product Masters
                   </Button>
                 </div>
               )}
@@ -439,6 +450,8 @@ export const InventoryView: React.FC = () => {
       {activeTab === 'batches' && <BatchLedgerPanel />}
 
       {activeTab === 'adjustments' && <BatchAdjustmentsPanel />}
+
+      {activeTab === 'breakage' && <BreakageDamagePanel />}
 
       {/* Drawers and Modals */}
       <ProductDetailDrawer
@@ -455,7 +468,10 @@ export const InventoryView: React.FC = () => {
 
       <AddProductModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedProduct(null);
+        }}
         initialData={selectedProduct}
         onSuccess={() => fetchProductsList(true)}
       />
@@ -469,6 +485,7 @@ export const InventoryView: React.FC = () => {
       <MasterDataManagementModal
         isOpen={isMasterDataModalOpen}
         onClose={() => setIsMasterDataModalOpen(false)}
+        onRefreshNeeded={() => fetchProductsList(true)}
       />
     </div>
   );

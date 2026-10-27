@@ -192,7 +192,7 @@ export const ComplianceView: React.FC = () => {
         <div className="text-center border-b-2 border-black pb-4 mb-6">
           <h1 className="text-2xl font-bold uppercase tracking-wider">{organization?.name}</h1>
           <p className="text-xs uppercase mt-1">
-            Drug License: {currentStore?.drugLicenseNumber || 'Form 20B/21B Active'} | GSTIN: {organization?.gstin || 'GST Unregistered'}
+            Branch Code: {currentStore?.code || 'MAIN-01'} | GSTIN: {organization?.gstin || 'GST Registered'}
           </p>
           <h2 className="text-xl font-bold uppercase underline mt-3">
             Schedule H1 Register of Restricted Prescription Drugs

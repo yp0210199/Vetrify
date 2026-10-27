@@ -1,47 +1,53 @@
 import { StaffMember, SystemRoleId, getRoleRank } from '../types/firestore';
 
 /**
- * Vetrify Role Hierarchy & RBAC Utilities
+ * Vetrify Tiles & Sanitaryware Role Hierarchy & RBAC Utilities
  * 
  * Hierarchy:
- * owner (6) > admin (5) > manager (4) > pharmacist (3) > cashier (2) > staff (1)
+ * owner (6) > admin (5) > manager (4) > sales_staff / pharmacist (3) > cashier (2) > staff (1)
  */
 
 export const SUPPORTED_ROLES: { id: SystemRoleId; label: string; description: string; rank: number }[] = [
   {
     id: 'owner',
-    label: 'Pharmacy Owner',
-    description: 'Full administrative access across all stores, licensing, financials, staff, and system settings.',
+    label: 'Business Owner',
+    description: 'Full administrative access across all showroom branches, financials, staff, and system settings.',
     rank: 6,
   },
   {
     id: 'admin',
     label: 'Administrator',
-    description: 'Operational control over stores, staff onboarding, inventory, and dispensing workflows.',
+    description: 'Operational control over branches, staff onboarding, inventory, and sales workflows.',
     rank: 5,
   },
   {
     id: 'manager',
-    label: 'Store Manager',
-    description: 'Branch-level operational management, purchase approvals, and inventory audits.',
+    label: 'Showroom Manager',
+    description: 'Branch-level operational management, purchase approvals, and inventory/shade audits.',
     rank: 4,
   },
   {
+    id: 'sales_staff',
+    label: 'Showroom Sales Staff',
+    description: 'Square footage calculations, shade & lot matching, POS billing, and customer quotes.',
+    rank: 3,
+  },
+  {
     id: 'pharmacist',
-    label: 'Registered Pharmacist',
-    description: 'Prescription dispensing, Schedule H/H1 registers, POS billing, and inventory dispensing.',
+    label: 'Showroom Sales Staff (Legacy)',
+    description: 'Square footage calculations, shade & lot matching, POS billing, and customer quotes.',
     rank: 3,
   },
   {
     id: 'cashier',
     label: 'Retail Cashier',
-    description: 'POS retail checkout, cash/UPI collection, returns processing, and day-end shift closing.',
+    description: 'POS retail checkout, payment collection, returns processing, and shift closing.',
     rank: 2,
   },
   {
     id: 'staff',
-    label: 'Pharmacy Staff',
-    description: 'Basic inventory stocking, rack organization, and read-only catalog lookup.',
+    label: 'Yard & Warehouse Staff',
+    description: 'Yard stocking, loading challans, rack organization, and catalog lookup.',
     rank: 1,
   },
 ];
@@ -81,10 +87,10 @@ export function canCreateRole(caller: StaffMember | null | undefined, targetRole
 export function getAssignableRoles(caller: StaffMember | null | undefined) {
   if (!caller || caller.status !== 'active') return [];
   if (caller.roleId === 'owner') {
-    return SUPPORTED_ROLES;
+    return SUPPORTED_ROLES.filter(r => r.id !== 'pharmacist');
   }
   if (caller.roleId === 'admin') {
-    return SUPPORTED_ROLES.filter((r) => r.rank < 5);
+    return SUPPORTED_ROLES.filter((r) => r.rank < 5 && r.id !== 'pharmacist');
   }
   return [];
 }

@@ -154,7 +154,7 @@ export interface PosProductItem {
   brand: string;
   composition?: string;
   sku: string;
-  dosageForm: string;
+  dosageForm?: string;
   batchId: string;
   batch: string;
   expiry: string;
@@ -169,6 +169,15 @@ export interface PosProductItem {
   isColdChain?: boolean;
   hasBatches?: boolean;
   totalStoreStock?: number;
+  shadeNumber?: string;
+  toneCode?: string;
+  caliberCode?: string;
+  finish?: string;
+  grade?: string;
+  dimensionsMm?: { length: number; width: number; thickness: number };
+  coveragePerBoxSqFt?: number;
+  piecesPerBox?: number;
+  weightPerBoxKg?: number;
 }
 
 export interface PosCartItem {
@@ -199,6 +208,16 @@ export interface PosCartItem {
   schedule?: 'H' | 'H1' | 'X' | 'G' | 'OTC' | string;
   isPrescriptionRequired?: boolean;
   isManualBatchOverride?: boolean;
+  shadeNumber?: string;
+  toneCode?: string;
+  caliberCode?: string;
+  finish?: string;
+  grade?: string;
+  dimensionsMm?: { length: number; width: number; thickness: number };
+  coveragePerBoxSqFt?: number;
+  piecesPerBox?: number;
+  weightPerBoxKg?: number;
+  sqFtCalculated?: number;
 }
 
 export interface CartItem {
@@ -225,11 +244,59 @@ export interface PosBillSummary {
   taxableAmount: number;
   cgstAmount: number;
   sgstAmount: number;
+  freightAmount: number;
+  loadingUnloadingAmount: number;
   roundOff: number;
   grandTotal: number;
   totalSavings: number;
   totalItems: number;
   totalQty: number;
 }
+export interface ArchitectPartner {
+  id: string;
+  name: string;
+  firmName?: string;
+  phone: string;
+  email?: string;
+  role: 'Architect' | 'Interior Designer' | 'Civil Contractor' | 'Tile Mason / Mistri';
+  defaultCommissionPercent: number; // e.g. 5, 8, 10
+  totalBusinessDriven: number;
+  totalCommissionAccrued: number;
+  totalCommissionPaid: number;
+  pendingBalance: number;
+  status: 'active' | 'inactive';
+}
+
+export interface GodownDispatchChallan {
+  id: string;
+  challanNumber: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  date: string;
+  customerName: string;
+  customerPhone?: string;
+  siteDeliveryAddress?: string;
+  vehicleNumber?: string;
+  transporterName?: string;
+  driverPhone?: string;
+  godownYardLocation?: string;
+  totalBoxes: number;
+  totalSqFt: number;
+  totalWeightKg?: number;
+  status: 'pending' | 'loaded' | 'dispatched';
+  items: {
+    productId: string;
+    productName: string;
+    size?: string;
+    shadeNumber?: string;
+    toneCode?: string;
+    caliberCode?: string;
+    boxes: number;
+    pieces?: number;
+    weightKg?: number;
+    yardLocation?: string;
+  }[];
+}
+
 export * from './accounting';
 export * from './gst';

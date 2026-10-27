@@ -51,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
   unreadNotificationsCount = 0,
-  storeName = 'Main Street Pharmacy',
+  storeName = 'Main Showroom',
   storeLocation = 'Gurugram, Haryana',
   userName = 'Admin User',
   userRole = 'Owner',
@@ -72,23 +72,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', shortcut: 'Alt+1' },
-    { id: 'pos', label: 'Retail POS', icon: 'Store', shortcut: 'F1', badge: 'Fast', badgeVariant: 'primary' },
-    { id: 'compliance', label: 'Compliance & H1', icon: 'ShieldCheck', badge: 'Form 20', badgeVariant: 'warning' },
-    { id: 'wholesale', label: 'Wholesale', icon: 'Boxes', badge: 'B2B', badgeVariant: 'primary' },
-    { id: 'inventory', label: 'Inventory', icon: 'Package', shortcut: 'Alt+3' },
-    { id: 'warehouses', label: 'Warehouses', icon: 'Warehouse', badge: 'Hub', badgeVariant: 'primary' },
-    { id: 'transfers', label: 'Stock Transfers', icon: 'ArrowLeftRight', badge: 'Inter-Store', badgeVariant: 'primary' },
-    { id: 'purchases', label: 'Purchases', icon: 'ShoppingBag', shortcut: 'Alt+4', badge: 'GRN', badgeVariant: 'primary' },
-    { id: 'replenishment', label: 'Replenishment', icon: 'RefreshCw', badge: 'Auto PO', badgeVariant: 'warning' },
+    { id: 'pos', label: 'Showroom Billing POS', icon: 'Store', shortcut: 'F1', badge: 'Fast', badgeVariant: 'primary' },
+    { id: 'wholesale', label: 'Wholesale & B2B', icon: 'Boxes', badge: 'B2B', badgeVariant: 'primary' },
+    { id: 'inventory', label: 'Tiles & Sanitary Master', icon: 'Package', shortcut: 'Alt+3' },
+    { id: 'warehouses', label: 'Godowns & Yards', icon: 'Warehouse', badge: 'Yard', badgeVariant: 'primary' },
+    { id: 'transfers', label: 'Stock Transfers', icon: 'ArrowLeftRight', badge: 'Inter-Yard', badgeVariant: 'primary' },
+    { id: 'purchases', label: 'Purchases & Inwards', icon: 'ShoppingBag', shortcut: 'Alt+4', badge: 'GRN', badgeVariant: 'primary' },
+    { id: 'replenishment', label: 'Auto Replenishment', icon: 'RefreshCw', badge: 'Auto PO', badgeVariant: 'warning' },
     { id: 'sales_returns', label: 'Sales & Returns', icon: 'RotateCcw', isFuture: true, phase: 2 },
-    { id: 'customers', label: 'Customers', icon: 'Users', badge: 'Khata', badgeVariant: 'primary' },
-    { id: 'suppliers', label: 'Suppliers', icon: 'Building2', shortcut: 'Alt+5' },
+    { id: 'customers', label: 'Customers & Khata', icon: 'Users', badge: 'Khata', badgeVariant: 'primary' },
+    { id: 'suppliers', label: 'Suppliers & Vendors', icon: 'Building2', shortcut: 'Alt+5' },
     { id: 'collections', label: 'Collections', icon: 'Wallet', isFuture: true, phase: 2 },
-    { id: 'ecommerce', label: 'E-commerce', icon: 'Globe', badge: 'Omni', badgeVariant: 'primary' },
-    { id: 'reports', label: 'Reports', icon: 'BarChart3', isFuture: true, phase: 2 },
-    { id: 'gst_accounts', label: 'GST & Accounts', icon: 'ReceiptText' },
+    { id: 'ecommerce', label: 'E-commerce Store', icon: 'Globe', badge: 'Omni', badgeVariant: 'primary' },
+    { id: 'reports', label: 'Reports & Analytics', icon: 'BarChart3', isFuture: true, phase: 2 },
+    { id: 'gst_accounts', label: 'GST & Ledgers', icon: 'ReceiptText' },
     { id: 'tasks', label: 'Tasks', icon: 'CheckSquare' },
-    { id: 'clinical_support', label: 'Clinical Support', icon: 'Brain', badge: 'AI', badgeVariant: 'primary' },
     { id: 'audit_centre', label: 'Audit Centre', icon: 'ShieldAlert' },
     { id: 'activity_centre', label: 'Activity Centre', icon: 'Activity' },
     { id: 'settings', label: 'Settings', icon: 'Settings' },
@@ -98,9 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const visibleNavItems = navItems.filter((item) => {
     switch (item.id) {
       case 'dashboard':
-      case 'compliance':
       case 'tasks':
-      case 'clinical_support':
       case 'audit_centre':
       case 'activity_centre':
         return true;
@@ -197,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center gap-2 overflow-hidden">
                 <Building2 className="w-3.5 h-3.5 text-[#38BDF8] flex-shrink-0" />
                 <span className="text-xs font-bold text-white truncate">
-                  {organization?.name || 'Pharmacy Workspace'}
+                  {organization?.name || 'Showroom Workspace'}
                 </span>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-[#94A3B8] transition-transform ${isOrgDropdownOpen ? 'rotate-180' : ''}`} />

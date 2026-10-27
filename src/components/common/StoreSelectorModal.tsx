@@ -28,7 +28,7 @@ export const StoreSelectorModal: React.FC<StoreSelectorModalProps> = ({
           ? [s.address.city, s.address.state].filter(Boolean).join(', ') || 'Branch Location'
           : 'Branch Location',
         gstin: s.gstin || organization?.gstin || 'GST Unregistered',
-        dlNumber: s.drugLicenseNumber || organization?.drugLicenseNumber || 'DL Active',
+        dlNumber: s.gstin || organization?.gstin || 'GST Active',
         status: s.status === 'active' ? 'online' : 'offline',
       }))
     : [currentStore];

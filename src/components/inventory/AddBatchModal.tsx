@@ -36,9 +36,10 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
   const [isSearchingProducts, setIsSearchingProducts] = useState(false);
 
   const [storeId, setStoreId] = useState('');
-  const [batchNumber, setBatchNumber] = useState('');
-  const [manufacturingDate, setManufacturingDate] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
+  const [lotShadeNumber, setLotShadeNumber] = useState('');
+  const [toneCode, setToneCode] = useState('');
+  const [caliberCode, setCaliberCode] = useState('');
+  const [productionDate, setProductionDate] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [mrp, setMrp] = useState('');
   const [salePrice, setSalePrice] = useState('');
@@ -115,26 +116,13 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
       return;
     }
 
-    if (!batchNumber.trim()) {
-      setErrorMessage('Batch number is required.');
+    if (!lotShadeNumber.trim()) {
+      setErrorMessage('Lot / Shade number is required.');
       return;
     }
 
-    if (!manufacturingDate) {
-      setErrorMessage('Manufacturing date is required.');
-      return;
-    }
-
-    if (!expiryDate) {
-      setErrorMessage('Expiry date is required.');
-      return;
-    }
-
-    const mfgDateObj = new Date(manufacturingDate);
-    const expDateObj = new Date(expiryDate);
-
-    if (mfgDateObj > expDateObj) {
-      setErrorMessage('Manufacturing date cannot be after the expiry date.');
+    if (!productionDate) {
+      setErrorMessage('Production / Inward date is required.');
       return;
     }
 
@@ -174,9 +162,11 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
         productId: selectedProduct.id,
         productName: selectedProduct.productName,
         productSku: selectedProduct.sku,
-        batchNumber: batchNumber.trim(),
-        manufacturingDate: Timestamp.fromDate(mfgDateObj),
-        expiryDate: Timestamp.fromDate(expDateObj),
+        batchNumber: lotShadeNumber.trim(),
+        shadeNumber: lotShadeNumber.trim(),
+        toneCode: toneCode.trim() || undefined,
+        caliberCode: caliberCode.trim() || undefined,
+        manufacturingDate: Timestamp.fromDate(new Date(productionDate || Date.now())),
         purchasePrice: purchaseVal,
         mrp: mrpVal,
         salePrice: saleVal,
@@ -188,16 +178,17 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
         notes: notes.trim() || undefined,
       });
 
-      success(`Successfully inwarded Batch ${batchNumber.toUpperCase()} for ${selectedProduct.productName}`, 'Batch Lots Saved');
+      success(`Successfully inwarded Lot ${lotShadeNumber.toUpperCase()} for ${selectedProduct.productName}`, 'Batch Lots Saved');
       
       // Reset non-preset form fields
       if (!presetProduct) {
         setSelectedProduct(null);
         setProductSearchQuery('');
       }
-      setBatchNumber('');
-      setManufacturingDate('');
-      setExpiryDate('');
+      setLotShadeNumber('');
+      setToneCode('');
+      setCaliberCode('');
+      setProductionDate('');
       setQuantity('');
       setNotes('');
       setStorageLocation('');
@@ -307,21 +298,21 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
             </select>
           </div>
 
-          {/* Batch Number & Quantity */}
+          {/* Lot/Shade Number & Quantity */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#334155] block">Batch Number <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold text-[#334155] block">Lot / Shade Number <span className="text-red-500">*</span></label>
               <input
                 type="text"
-                placeholder="e.g. B-ST202"
-                value={batchNumber}
-                onChange={(e) => setBatchNumber(e.target.value)}
+                placeholder="e.g. A12-LOT"
+                value={lotShadeNumber}
+                onChange={(e) => setLotShadeNumber(e.target.value)}
                 className="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] font-mono focus:outline-hidden focus:border-[#0D5C63]"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#334155] block">Physical Quantity <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold text-[#334155] block">Physical Quantity (Boxes) <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Package className="absolute left-3 top-2.5 w-4 h-4 text-[#94A3B8]" />
                 <input
@@ -336,33 +327,36 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
             </div>
           </div>
 
-          {/* Manufacturing & Expiry Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Tone & Caliber & Production Date */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#334155] block">Mfg Date <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-[#94A3B8]" />
-                <input
-                  type="date"
-                  value={manufacturingDate}
-                  onChange={(e) => setManufacturingDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] focus:outline-hidden focus:border-[#0D5C63]"
-                  required
-                />
-              </div>
+              <label className="text-xs font-bold text-[#334155] block">Tone</label>
+              <input
+                type="text"
+                placeholder="e.g. T-04"
+                value={toneCode}
+                onChange={(e) => setToneCode(e.target.value)}
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] focus:outline-hidden focus:border-[#0D5C63]"
+              />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#334155] block">Expiry Date <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-[#94A3B8]" />
-                <input
-                  type="date"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] focus:outline-hidden focus:border-[#0D5C63]"
-                  required
-                />
-              </div>
+              <label className="text-xs font-bold text-[#334155] block">Caliber</label>
+              <input
+                type="text"
+                placeholder="e.g. CAL-0"
+                value={caliberCode}
+                onChange={(e) => setCaliberCode(e.target.value)}
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] focus:outline-hidden focus:border-[#0D5C63]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#334155] block">Prod. Date</label>
+              <input
+                type="date"
+                value={productionDate}
+                onChange={(e) => setProductionDate(e.target.value)}
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0B1F33] focus:outline-hidden focus:border-[#0D5C63]"
+              />
             </div>
           </div>
 

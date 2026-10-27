@@ -45,7 +45,6 @@ export const OrganizationSettingsTab: React.FC = () => {
       setName(organization.name || '');
       setLegalName(organization.legalName || '');
       setGstin(organization.gstin || '');
-      setDrugLicenseNumber(organization.drugLicenseNumber || '');
 
       setFefoStrictEnforcement(organization.settings?.fefoStrictEnforcement ?? true);
       setScheduleHAutoRegister(organization.settings?.scheduleHAutoRegister ?? true);

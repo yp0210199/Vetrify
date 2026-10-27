@@ -30,7 +30,6 @@ export const storeService = {
       address: data.address,
       phone: data.phone,
       email: data.email,
-      drugLicenseNumber: data.drugLicenseNumber,
       gstin: data.gstin,
       isMainBranch: data.isMainBranch ?? false,
       status: data.status || 'active',
@@ -61,7 +60,6 @@ export const storeService = {
         address: data.address,
         phone: data.phone,
         email: data.email,
-        drugLicenseNumber: data.drugLicenseNumber,
         gstin: data.gstin,
         isMainBranch: data.isMainBranch ?? false,
         status: data.status || 'active',
@@ -88,7 +86,6 @@ export const storeService = {
       };
       phone?: string;
       email?: string;
-      drugLicenseNumber?: string;
       gstin?: string;
       isMainBranch?: boolean;
     },
@@ -106,7 +103,6 @@ export const storeService = {
       address: params.address,
       phone: params.phone?.trim(),
       email: params.email?.trim(),
-      drugLicenseNumber: params.drugLicenseNumber?.trim(),
       gstin: params.gstin?.trim(),
       isMainBranch: params.isMainBranch ?? false,
       status: 'active' as const,

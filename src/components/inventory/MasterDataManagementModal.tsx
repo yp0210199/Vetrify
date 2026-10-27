@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Tag, Building2, Percent, FileCode, Check, RefreshCw } from 'lucide-react';
+import { Plus, Tag, Building2, Percent, FileCode, Check, RefreshCw, Trash2, Box } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { FormField, TextInput, Select } from '../ui/Input';
@@ -7,50 +7,58 @@ import { Tabs } from '../ui/Tabs';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { useToast } from '../../context/ToastContext';
-import { getCategories, createCategory } from '../../services/categoryService';
-import { getManufacturers, createManufacturer } from '../../services/manufacturerService';
+import { getCategories, createCategory, deleteCategory } from '../../services/categoryService';
+import { getManufacturers, createManufacturer, deleteManufacturer } from '../../services/manufacturerService';
+import { getUnits, createUnit, deleteUnit } from '../../services/unitService';
 import { getTaxSlabs, getHsnRecords } from '../../services/taxService';
-import { ProductCategory, Manufacturer, TaxSlab, HsnRecord } from '../../types/product';
+import { ProductCategory, Manufacturer, UnitDefinition, TaxSlab, HsnRecord } from '../../types/product';
 
 interface MasterDataManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRefreshNeeded?: () => void;
 }
 
 export const MasterDataManagementModal: React.FC<MasterDataManagementModalProps> = ({
   isOpen,
   onClose,
+  onRefreshNeeded,
 }) => {
   const { organization } = useWorkspace();
   const { user } = useAuth();
   const { success, error } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'categories' | 'manufacturers' | 'taxes' | 'hsn'>('categories');
+  const [activeTab, setActiveTab] = useState<'categories' | 'manufacturers' | 'units' | 'taxes'>('categories');
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [units, setUnits] = useState<UnitDefinition[]>([]);
   const [taxes, setTaxes] = useState<TaxSlab[]>([]);
   const [hsnCodes, setHsnCodes] = useState<HsnRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Form states for creating new records
+  // Form states
   const [newCatName, setNewCatName] = useState('');
   const [newCatCode, setNewCatCode] = useState('');
   const [newMfrName, setNewMfrName] = useState('');
   const [newMfrShort, setNewMfrShort] = useState('');
+  const [newUnitName, setNewUnitName] = useState('');
+  const [newUnitCode, setNewUnitCode] = useState('');
 
   const loadData = async () => {
     if (!organization) return;
     setIsLoading(true);
     try {
-      const [catList, mfrList, taxList, hsnList] = await Promise.all([
+      const [catList, mfrList, unitList, taxList, hsnList] = await Promise.all([
         getCategories(organization.id, true),
         getManufacturers(organization.id, true),
+        getUnits(organization.id, true),
         getTaxSlabs(organization.id),
         getHsnRecords(organization.id),
       ]);
 
       setCategories(catList);
       setManufacturers(mfrList);
+      setUnits(unitList);
       setTaxes(taxList);
       setHsnCodes(hsnList);
     } catch (err: any) {
@@ -84,9 +92,22 @@ export const MasterDataManagementModal: React.FC<MasterDataManagementModalProps>
       setCategories((prev) => [...prev, created]);
       setNewCatName('');
       setNewCatCode('');
-      success(`Added "${created.name}"`, 'Category Created');
+      success(`Added category "${created.name}"`, 'Category Created');
+      onRefreshNeeded?.();
     } catch (err: any) {
       error(err?.message || 'Error creating category', 'Failed to create category');
+    }
+  };
+
+  const handleDeleteCategory = async (catId: string, catName: string) => {
+    if (!organization || !window.confirm(`Delete category "${catName}"?`)) return;
+    try {
+      await deleteCategory(organization.id, catId);
+      setCategories((prev) => prev.filter((c) => c.id !== catId));
+      success(`Deleted category "${catName}"`, 'Category Deleted');
+      onRefreshNeeded?.();
+    } catch (err: any) {
+      error(err?.message || 'Error deleting category', 'Delete Failed');
     }
   };
 
@@ -99,16 +120,64 @@ export const MasterDataManagementModal: React.FC<MasterDataManagementModalProps>
         { uid: user.uid, email: user.email, displayName: user.displayName },
         {
           name: newMfrName.trim(),
-          shortName: newMfrShort.trim() || newMfrName.split(' ')[0],
+          shortName: newMfrShort.trim() || newMfrName.trim(),
+          code: newMfrName.substring(0, 4).toUpperCase(),
           status: 'active',
         }
       );
       setManufacturers((prev) => [...prev, created]);
       setNewMfrName('');
       setNewMfrShort('');
-      success(`Added "${created.name}"`, 'Manufacturer Created');
+      success(`Added Brand "${created.name}"`, 'Brand Created');
+      onRefreshNeeded?.();
     } catch (err: any) {
-      error(err?.message || 'Error creating manufacturer', 'Failed to create manufacturer');
+      error(err?.message || 'Error creating brand', 'Failed to create brand');
+    }
+  };
+
+  const handleDeleteManufacturer = async (mfrId: string, mfrName: string) => {
+    if (!organization || !window.confirm(`Delete brand "${mfrName}"?`)) return;
+    try {
+      await deleteManufacturer(organization.id, mfrId);
+      setManufacturers((prev) => prev.filter((m) => m.id !== mfrId));
+      success(`Deleted brand "${mfrName}"`, 'Brand Deleted');
+      onRefreshNeeded?.();
+    } catch (err: any) {
+      error(err?.message || 'Error deleting brand', 'Delete Failed');
+    }
+  };
+
+  const handleAddUnit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUnitName.trim() || !organization || !user) return;
+    try {
+      const created = await createUnit(
+        organization.id,
+        { uid: user.uid, email: user.email, displayName: user.displayName },
+        {
+          name: newUnitName.trim(),
+          code: newUnitCode.trim() || newUnitName.substring(0, 4).toUpperCase(),
+        }
+      );
+      setUnits((prev) => [...prev, created]);
+      setNewUnitName('');
+      setNewUnitCode('');
+      success(`Added Unit "${created.name}"`, 'Unit Created');
+      onRefreshNeeded?.();
+    } catch (err: any) {
+      error(err?.message || 'Error creating unit', 'Failed to create unit');
+    }
+  };
+
+  const handleDeleteUnit = async (unitId: string, unitName: string) => {
+    if (!organization || !window.confirm(`Delete unit "${unitName}"?`)) return;
+    try {
+      await deleteUnit(organization.id, unitId);
+      setUnits((prev) => prev.filter((u) => u.id !== unitId));
+      success(`Deleted unit "${unitName}"`, 'Unit Deleted');
+      onRefreshNeeded?.();
+    } catch (err: any) {
+      error(err?.message || 'Error deleting unit', 'Delete Failed');
     }
   };
 
@@ -116,8 +185,8 @@ export const MasterDataManagementModal: React.FC<MasterDataManagementModalProps>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Master Data Configuration"
-      subtitle="Manage canonical categories, manufacturers, tax slabs, and HSN codes"
+      title="Showroom Master Data Slabs"
+      subtitle="Manage Brands, Product Categories, Packaging Units & Statutory GST Slabs"
       size="lg"
       footer={
         <div className="flex justify-end w-full">
@@ -130,112 +199,179 @@ export const MasterDataManagementModal: React.FC<MasterDataManagementModalProps>
       <div className="space-y-4 text-xs">
         <Tabs
           tabs={[
-            { id: 'categories', label: 'Categories', count: categories.length },
-            { id: 'manufacturers', label: 'Manufacturers', count: manufacturers.length },
-            { id: 'taxes', label: 'GST Tax Slabs', count: taxes.length },
-            { id: 'hsn', label: 'HSN Codes', count: hsnCodes.length },
+            { id: 'categories', label: 'Categories Master' },
+            { id: 'manufacturers', label: 'Brands & Manufacturers' },
+            { id: 'units', label: 'Units & Packaging Quantities' },
+            { id: 'taxes', label: 'GST & HSN Tax Slabs' },
           ]}
           activeTab={activeTab}
           onChange={(t) => setActiveTab(t as any)}
         />
 
+        {/* Tab 1: Categories Master */}
         {activeTab === 'categories' && (
           <div className="space-y-4">
-            <form onSubmit={handleAddCategory} className="flex gap-2 p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-              <div className="flex-1">
-                <TextInput
-                  placeholder="New Category Name (e.g. Injections)"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                />
-              </div>
-              <div className="w-28">
-                <TextInput
-                  placeholder="Code"
-                  value={newCatCode}
-                  onChange={(e) => setNewCatCode(e.target.value)}
-                />
-              </div>
-              <Button variant="primary" size="sm" icon={Plus} type="submit" disabled={!newCatName.trim()}>
-                Add
+            <form onSubmit={handleAddCategory} className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center gap-2">
+              <TextInput
+                placeholder="New Category Name (e.g. Vitrified Tiles, Wash Basins)"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="flex-1"
+              />
+              <TextInput
+                placeholder="Code (e.g. VT)"
+                value={newCatCode}
+                onChange={(e) => setNewCatCode(e.target.value)}
+                className="w-28"
+              />
+              <Button variant="primary" size="sm" icon={Plus} type="submit">
+                Add Category
               </Button>
             </form>
 
-            <div className="divide-y divide-[#F1F5F9] max-h-60 overflow-y-auto border border-[#E2E8F0] rounded-xl bg-white">
+            <div className="max-h-60 overflow-y-auto border border-[#E2E8F0] rounded-xl divide-y">
               {categories.map((c) => (
-                <div key={c.id} className="p-3 flex items-center justify-between">
+                <div key={c.id} className="p-3 flex items-center justify-between hover:bg-[#F8FAFC]">
                   <div>
-                    <span className="font-bold text-[#0B1F33]">{c.name}</span>
-                    <span className="ml-2 text-[10px] font-mono bg-[#F1F5F9] px-1.5 py-0.5 rounded text-[#64748B]">{c.code}</span>
+                    <span className="font-bold text-[#0B1F33] text-xs block">{c.name}</span>
+                    <span className="text-[10px] font-mono text-[#64748B]">Code: {c.code}</span>
                   </div>
-                  <span className="text-[10px] text-emerald-700 bg-emerald-50 font-bold px-2 py-0.5 rounded">Active</span>
+                  <button
+                    onClick={() => handleDeleteCategory(c.id, c.name)}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                    title="Delete Category"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* Tab 2: Brands & Manufacturers */}
         {activeTab === 'manufacturers' && (
           <div className="space-y-4">
-            <form onSubmit={handleAddManufacturer} className="flex gap-2 p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-              <div className="flex-1">
-                <TextInput
-                  placeholder="New Manufacturer Name (e.g. Cipla Ltd)"
-                  value={newMfrName}
-                  onChange={(e) => setNewMfrName(e.target.value)}
-                />
-              </div>
-              <div className="w-28">
-                <TextInput
-                  placeholder="Short Name"
-                  value={newMfrShort}
-                  onChange={(e) => setNewMfrShort(e.target.value)}
-                />
-              </div>
-              <Button variant="primary" size="sm" icon={Plus} type="submit" disabled={!newMfrName.trim()}>
-                Add
+            <form onSubmit={handleAddManufacturer} className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center gap-2">
+              <TextInput
+                placeholder="New Brand / Manufacturer Name (e.g. Kajaria, Hindware, Jaquar)"
+                value={newMfrName}
+                onChange={(e) => setNewMfrName(e.target.value)}
+                className="flex-1"
+              />
+              <TextInput
+                placeholder="Short Name"
+                value={newMfrShort}
+                onChange={(e) => setNewMfrShort(e.target.value)}
+                className="w-28"
+              />
+              <Button variant="primary" size="sm" icon={Plus} type="submit">
+                Add Brand
               </Button>
             </form>
 
-            <div className="divide-y divide-[#F1F5F9] max-h-60 overflow-y-auto border border-[#E2E8F0] rounded-xl bg-white">
+            <div className="max-h-60 overflow-y-auto border border-[#E2E8F0] rounded-xl divide-y">
               {manufacturers.map((m) => (
-                <div key={m.id} className="p-3 flex items-center justify-between">
+                <div key={m.id} className="p-3 flex items-center justify-between hover:bg-[#F8FAFC]">
                   <div>
-                    <span className="font-bold text-[#0B1F33]">{m.name}</span>
-                    {m.shortName && <span className="ml-2 text-[11px] text-[#64748B]">({m.shortName})</span>}
+                    <span className="font-bold text-[#0B1F33] text-xs block">{m.name}</span>
+                    <span className="text-[10px] font-mono text-[#64748B]">{m.shortName || m.code}</span>
                   </div>
-                  <span className="text-[10px] text-emerald-700 bg-emerald-50 font-bold px-2 py-0.5 rounded">Active</span>
+                  <button
+                    onClick={() => handleDeleteManufacturer(m.id, m.name)}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                    title="Delete Brand"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {activeTab === 'taxes' && (
-          <div className="divide-y divide-[#F1F5F9] border border-[#E2E8F0] rounded-xl bg-white">
-            {taxes.map((t) => (
-              <div key={t.id} className="p-3 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-[#0B1F33]">{t.name}</span>
-                  <p className="text-[11px] text-[#64748B]">CGST: {t.cgstRate}% + SGST: {t.sgstRate}%</p>
+        {/* Tab 3: Units & Packaging Quantities */}
+        {activeTab === 'units' && (
+          <div className="space-y-4">
+            <form onSubmit={handleAddUnit} className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center gap-2">
+              <TextInput
+                placeholder="New Unit Name (e.g. Box, Sq. Ft, Piece, Bag, Set, Meter)"
+                value={newUnitName}
+                onChange={(e) => setNewUnitName(e.target.value)}
+                className="flex-1"
+              />
+              <TextInput
+                placeholder="Code (e.g. BOX)"
+                value={newUnitCode}
+                onChange={(e) => setNewUnitCode(e.target.value)}
+                className="w-28"
+              />
+              <Button variant="primary" size="sm" icon={Plus} type="submit">
+                Add Unit
+              </Button>
+            </form>
+
+            <div className="max-h-60 overflow-y-auto border border-[#E2E8F0] rounded-xl divide-y">
+              {units.map((u) => (
+                <div key={u.id} className="p-3 flex items-center justify-between hover:bg-[#F8FAFC]">
+                  <div>
+                    <span className="font-bold text-[#0B1F33] text-xs block">{u.name}</span>
+                    <span className="text-[10px] font-mono text-[#64748B]">Code: {u.code}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteUnit(u.id, u.name)}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                    title="Delete Unit"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <span className="font-mono-num font-extrabold text-[#0D5C63]">{t.gstRate}%</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        {activeTab === 'hsn' && (
-          <div className="divide-y divide-[#F1F5F9] border border-[#E2E8F0] rounded-xl bg-white max-h-60 overflow-y-auto">
-            {hsnCodes.map((h) => (
-              <div key={h.id} className="p-3 flex items-center justify-between">
-                <div>
-                  <span className="font-mono font-bold text-[#0B1F33]">HSN {h.code}</span>
-                  <p className="text-[11px] text-[#64748B] line-clamp-1">{h.description}</p>
-                </div>
-                <span className="font-mono-num font-bold text-[#0B1F33]">{h.defaultGstRate}% GST</span>
-              </div>
-            ))}
+        {/* Tab 4: GST & HSN Slabs */}
+        {activeTab === 'taxes' && (
+          <div className="space-y-4">
+            <div className="border border-[#E2E8F0] rounded-xl overflow-hidden">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F8FAFC] border-b">
+                  <tr className="font-bold text-[#64748B]">
+                    <th className="p-2.5">HSN Code</th>
+                    <th className="p-2.5">Description</th>
+                    <th className="p-2.5 text-right">Default GST Rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  <tr className="hover:bg-[#F8FAFC]">
+                    <td className="p-2.5 font-mono font-bold text-[#0B1F33]">6907</td>
+                    <td className="p-2.5 text-[#334155]">Vitrified, Ceramic & Wall/Floor Tiles</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-[#0D5C63]">18% GST</td>
+                  </tr>
+                  <tr className="hover:bg-[#F8FAFC]">
+                    <td className="p-2.5 font-mono font-bold text-[#0B1F33]">6910</td>
+                    <td className="p-2.5 text-[#334155]">Ceramic Sanitaryware (Basins, WCs, Urinals)</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-[#0D5C63]">18% GST</td>
+                  </tr>
+                  <tr className="hover:bg-[#F8FAFC]">
+                    <td className="p-2.5 font-mono font-bold text-[#0B1F33]">8481</td>
+                    <td className="p-2.5 text-[#334155]">Taps, Faucets, Diverters & Showers</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-[#0D5C63]">18% GST</td>
+                  </tr>
+                  <tr className="hover:bg-[#F8FAFC]">
+                    <td className="p-2.5 font-mono font-bold text-[#0B1F33]">3506</td>
+                    <td className="p-2.5 text-[#334155]">Tile Adhesive & Epoxy Grout Chemicals</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-[#0D5C63]">12% GST</td>
+                  </tr>
+                  <tr className="hover:bg-[#F8FAFC]">
+                    <td className="p-2.5 font-mono font-bold text-[#0B1F33]">3917</td>
+                    <td className="p-2.5 text-[#334155]">CPVC / UPVC Pipes & Plumbing Fittings</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-[#0D5C63]">18% GST</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

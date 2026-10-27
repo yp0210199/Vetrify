@@ -49,6 +49,8 @@ export type FirestoreUserUpdatePayload = Partial<
  */
 export interface OrganizationSettings {
   fefoStrictEnforcement?: boolean;
+  shadeMatchEnforcement?: boolean;
+  defaultWastagePercent?: number;
   scheduleHAutoRegister?: boolean;
   taxInclusivePricing?: boolean;
   autoReorderTriggers?: boolean;
@@ -60,7 +62,6 @@ export interface Organization {
   name: string;
   legalName: string;
   gstin?: string;
-  drugLicenseNumber?: string;
   currency: 'INR';
   timezone: 'Asia/Kolkata';
   status: 'active' | 'inactive' | 'trial';
@@ -82,10 +83,10 @@ export type OrganizationUpdatePayload = Partial<
 
 /**
  * ============================================================================
- * 3. Store / Pharmacy Branch Model (/organizations/{organizationId}/stores/{storeId})
+ * 3. Store / Showroom Branch Model (/organizations/{organizationId}/stores/{storeId})
  * ============================================================================
  */
-export interface PharmacyStoreAddress {
+export interface StoreBranchAddress {
   street?: string;
   city?: string;
   state?: string;
@@ -93,15 +94,16 @@ export interface PharmacyStoreAddress {
   country: string;
 }
 
-export interface PharmacyStore {
+export type PharmacyStoreAddress = StoreBranchAddress;
+
+export interface StoreBranch {
   id: string;
   organizationId: string;
   name: string;
   code: string;
-  address?: PharmacyStoreAddress;
+  address?: StoreBranchAddress;
   phone?: string;
   email?: string;
-  drugLicenseNumber?: string;
   gstin?: string;
   isMainBranch: boolean;
   status: 'active' | 'inactive';
@@ -109,13 +111,17 @@ export interface PharmacyStore {
   updatedAt: Timestamp;
 }
 
-export type PharmacyStoreCreatePayload = Omit<PharmacyStore, 'createdAt' | 'updatedAt'> & {
+export type PharmacyStore = StoreBranch;
+
+export type StoreBranchCreatePayload = Omit<StoreBranch, 'createdAt' | 'updatedAt'> & {
   createdAt: FieldValue;
   updatedAt: FieldValue;
 };
 
-export type PharmacyStoreUpdatePayload = Partial<
-  Omit<PharmacyStore, 'id' | 'organizationId' | 'createdAt' | 'updatedAt'>
+export type PharmacyStoreCreatePayload = StoreBranchCreatePayload;
+
+export type StoreBranchUpdatePayload = Partial<
+  Omit<StoreBranch, 'id' | 'organizationId' | 'createdAt' | 'updatedAt'>
 > & {
   updatedAt: FieldValue;
 };
@@ -131,6 +137,7 @@ export type SystemRoleId =
   | 'owner'
   | 'admin'
   | 'manager'
+  | 'sales_staff'
   | 'pharmacist'
   | 'cashier'
   | 'staff';
@@ -139,6 +146,7 @@ export const ROLE_RANKS: Readonly<Record<SystemRoleId, number>> = Object.freeze(
   owner: 6,
   admin: 5,
   manager: 4,
+  sales_staff: 3,
   pharmacist: 3,
   cashier: 2,
   staff: 1,
@@ -231,8 +239,7 @@ export type StaffPermission =
   | 'staff.remove';
 
 export type CompliancePermission =
-  | 'compliance.schedule_h_read'
-  | 'compliance.schedule_h_write';
+  | 'inventory.shade_lot_manage';
 
 export type SettingsPermission =
   | 'settings.read'
@@ -439,8 +446,7 @@ export const ALL_PERMISSIONS: ReadonlyArray<Permission> = Object.freeze([
   'staff.invite',
   'staff.update_role',
   'staff.remove',
-  'compliance.schedule_h_read',
-  'compliance.schedule_h_write',
+  'inventory.shade_lot_manage',
   'replenishment.read',
   'replenishment.manage_rules',
   'replenishment.run',
@@ -844,35 +850,25 @@ export interface WorkspaceState {
  * 10. POS Sale Invoice Model (/organizations/{organizationId}/invoices/{invoiceId})
  * ============================================================================
  */
-export interface PrescriptionDetails {
-  patientName: string;
-  patientAge: number | string;
-  patientGender?: 'male' | 'female' | 'other';
-  patientPhone?: string;
-  doctorName: string;
-  doctorRegNo: string;
-  hospitalClinic?: string;
-  prescriptionDate?: string;
-  notes?: string;
-  prescriptionId?: string;
-  secureUrl?: string;
-  prescriptionUrl?: string;
-}
-
 export interface SaleInvoiceItem {
   productId: string;
   productName: string;
   brand: string;
-  dosageForm?: string;
   sku: string;
   batchId: string;
-  batchNumber: string;
-  expiryDate: string; // MM/YYYY or YYYY-MM-DD string representation for printable display
+  batchNumber: string;               // Lot / Batch / Shade Number
+  shadeNumber?: string;              // Tile Shade Code
+  toneCode?: string;                 // Tone Code
+  dimensions?: string;               // e.g. "600x600 mm"
+  coverageSqFt?: number;             // Calculated total Sq. Ft
+  coverageSqMtr?: number;            // Calculated total Sq. Mtr
+  boxesQuantity?: number;            // Quantity in Boxes
+  piecesQuantity?: number;           // Quantity in Pieces
+  pricePerSqFt?: number;             // Rate per Sq. Ft
+  expiryDate?: string;               // Optional string representation
   expiryTimestamp?: Timestamp;
   hsnCode?: string;
-  schedule?: 'OTC' | 'H' | 'H1' | 'X' | 'G' | string;
-  isPrescriptionRequired: boolean;
-  quantity: number;
+  quantity: number;                  // Billed Quantity (Boxes or Units)
   unit?: string;
   mrp: number;
   unitPrice: number;
@@ -903,6 +899,12 @@ export interface SaleInvoice {
   items: SaleInvoiceItem[];
   itemsCount: number;
   totalQuantity: number;
+  totalBoxesQuantity?: number;
+  totalSqFtCoverage?: number;
+  freightAmount?: number;            // Transportation charges
+  loadingUnloadingAmount?: number;   // Hamali / Loading charges
+  referredByArchitectId?: string;    // Architect / Lead referral
+  referredByArchitectName?: string;
   subtotal: number;
   totalDiscount: number;
   taxableAmount: number;
@@ -911,8 +913,6 @@ export interface SaleInvoice {
   totalTax: number;
   roundOff: number;
   grandTotal: number;
-  hasScheduleHDrugs: boolean;
-  prescription?: PrescriptionDetails | null;
   status: 'completed' | 'voided' | 'refunded';
   createdByUid: string;
   createdByName?: string;
@@ -951,9 +951,6 @@ export interface Supplier {
   phone: string;
   email?: string;
   gstin?: string;
-  drugLicenseNumber?: string;
-  drugLicense20B?: string;
-  drugLicense21B?: string;
   panNumber?: string;
   address?: SupplierAddress;
   paymentTerms?: string; // NET_30, NET_15, IMMEDIATE, etc.

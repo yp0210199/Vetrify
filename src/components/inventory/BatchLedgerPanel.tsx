@@ -349,58 +349,35 @@ export const BatchLedgerPanel: React.FC = () => {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] font-bold select-none">
-                  <th className="py-3 px-3">Batch ID / SKU</th>
-                  <th className="py-3 px-3 min-w-[180px]">Medicine Name</th>
-                  <th className="py-3 px-3">Expiry Date</th>
+                  <th className="py-3 px-3">Lot / Shade</th>
+                  <th className="py-3 px-3 min-w-[180px]">Product</th>
+                  <th className="py-3 px-3">Tone / Caliber</th>
                   <th className="py-3 px-3">Status</th>
                   <th className="py-3 px-3 text-right">Available Stock</th>
-                  <th className="py-3 px-3 text-right">Unit MRP</th>
-                  <th className="py-3 px-3 text-right">Unit Purchase</th>
-                  <th className="py-3 px-3">Storage Location</th>
+                  <th className="py-3 px-3 text-right">Sale Price</th>
+                  <th className="py-3 px-3 text-right">Cost</th>
+                  <th className="py-3 px-3">Yard / Aisle</th>
                   <th className="py-3 px-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F1F5F9]">
                 {filteredBatches.map((b) => {
-                  const daysRemaining = getDaysUntilExpiry(b);
-                  const isExpired = isBatchExpired(b);
-                  const isSoon = isBatchExpiringSoon(b);
-
                   return (
-                    <tr
-                      key={b.id}
-                      className={`hover:bg-[#F8FAFC] transition-colors ${
-                        isExpired ? 'bg-red-50/20' : isSoon ? 'bg-amber-50/10' : ''
-                      }`}
-                    >
+                  <tr
+                    key={b.id}
+                    className="hover:bg-[#F8FAFC] transition-colors"
+                  >
                       <td className="py-3.5 px-3">
                         <div className="flex flex-col">
                           <span className="font-mono text-[11px] font-black text-[#0B1F33]">{b.batchNumber}</span>
-                          <span className="text-[9px] font-mono text-[#64748B] mt-0.5">SKU: {b.productSku}</span>
+                          <span className="text-[9px] font-mono text-[#64748B] mt-0.5">{b.shadeNumber || '-'}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-3">
                         <span className="font-extrabold text-[#0B1F33] block">{b.productName}</span>
                       </td>
                       <td className="py-3.5 px-3">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-[#0B1F33]">
-                            {b.expiryDate ? new Date(b.expiryDate.toMillis()).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : '—'}
-                          </span>
-                          {isExpired ? (
-                            <span className="text-[10px] text-red-600 font-bold flex items-center gap-0.5 mt-0.5">
-                              <AlertCircle className="w-3 h-3 shrink-0" /> EXPIRED
-                            </span>
-                          ) : isSoon ? (
-                            <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5 mt-0.5">
-                              <Clock className="w-3 h-3 shrink-0" /> {daysRemaining} days left
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-emerald-600 font-semibold mt-0.5">
-                              {daysRemaining} days left
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-xs text-[#475569]">{b.toneCode || '-'} / {b.caliberCode || '-'}</span>
                       </td>
                       <td className="py-3.5 px-3">
                         <Badge status={b.status} size="sm" />

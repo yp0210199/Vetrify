@@ -84,8 +84,7 @@ export const BranchesManagementTab: React.FC = () => {
     return (
       s.name.toLowerCase().includes(q) ||
       s.code.toLowerCase().includes(q) ||
-      (s.address?.city && s.address.city.toLowerCase().includes(q)) ||
-      (s.drugLicenseNumber && s.drugLicenseNumber.toLowerCase().includes(q))
+      (s.address?.city && s.address.city.toLowerCase().includes(q))
     );
   });
 
@@ -206,14 +205,7 @@ export const BranchesManagementTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Compliance & Licenses */}
                 <div className="mt-3 p-2.5 bg-white rounded-xl border border-[#E2E8F0] space-y-1.5 text-[11px] font-mono">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Drug License:</span>
-                    <span className="font-bold text-[#0B1F33]">
-                      {store.drugLicenseNumber || organization?.drugLicenseNumber || 'Not specified'}
-                    </span>
-                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#64748B]">GSTIN:</span>
                     <span className="font-bold text-[#0B1F33]">
