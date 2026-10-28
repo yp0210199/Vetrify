@@ -245,7 +245,6 @@ export function validateProduct(data: unknown, expectedOrgId?: string): boolean 
     isNonEmptyString(d.sku) &&
     isNonEmptyString(d.productName) &&
     isNonEmptyString(d.brand) &&
-    isNonEmptyString(d.composition) &&
     typeof d.defaultMrp === 'number' && d.defaultMrp >= 0 &&
     typeof d.defaultPurchaseCost === 'number' && d.defaultPurchaseCost >= 0 &&
     typeof d.defaultSalePrice === 'number' && d.defaultSalePrice >= 0 &&

@@ -296,7 +296,6 @@ export const posService = {
       items,
       freightAmount = 0,
       loadingUnloadingAmount = 0,
-      prescription,
       creditOverrideUsed = false,
       clinicalOverrideReason = null,
       caller,
@@ -313,7 +312,6 @@ export const posService = {
     // 1. Group items by batch ID and check for duplicates or quantity constraints
     const batchQtyMap = new Map<string, number>();
     const batchDocRefs = new Map<string, any>();
-    let hasScheduleHDrugs = false;
 
     for (const item of items) {
       if (!item.batchId || item.batchId === 'NO BATCH') {
@@ -323,27 +321,11 @@ export const posService = {
         throw new Error(`Quantity for "${item.name}" must be greater than 0`);
       }
 
-      if (item.schedule === 'H' || item.schedule === 'H1' || item.schedule === 'X' || item.isPrescriptionRequired) {
-        hasScheduleHDrugs = true;
-      }
-
       const currentRequested = batchQtyMap.get(item.batchId) || 0;
       batchQtyMap.set(item.batchId, currentRequested + item.qty);
 
       if (!batchDocRefs.has(item.batchId)) {
         batchDocRefs.set(item.batchId, getBatchDocRef(organizationId, item.batchId));
-      }
-    }
-
-    // 2. Statutory Prescription Validation for Schedule H/H1/X
-    if (hasScheduleHDrugs) {
-      if (!prescription) {
-        throw new Error('Statutory Compliance Error: Prescription details are mandatory for Schedule H/H1/X medicines.');
-      }
-      if (!validatePrescriptionDetails(prescription)) {
-        throw new Error(
-          'Incomplete Prescription Details. Patient Name, Patient Age, Prescribing Doctor Name, and Doctor Registration Number are required.'
-        );
       }
     }
 
@@ -522,29 +504,6 @@ export const posService = {
         });
       }
 
-      // Build clean statutory prescription object if present
-      let sanitizedPrescription: Record<string, any> | null = null;
-      if (hasScheduleHDrugs && prescription) {
-        sanitizedPrescription = {
-          patientName: prescription.patientName ? String(prescription.patientName).trim() : '',
-          patientAge:
-            typeof prescription.patientAge === 'number'
-              ? prescription.patientAge
-              : Number(prescription.patientAge) || 0,
-          patientGender: prescription.patientGender || 'male',
-          patientPhone: prescription.patientPhone?.trim() || null,
-          doctorName: prescription.doctorName ? String(prescription.doctorName).trim() : '',
-          doctorRegNo: prescription.doctorRegNo ? String(prescription.doctorRegNo).trim() : '',
-          hospitalClinic: prescription.hospitalClinic?.trim() || null,
-          prescriptionDate:
-            prescription.prescriptionDate || new Date().toISOString().slice(0, 10),
-          notes: prescription.notes?.trim() || null,
-          prescriptionId: prescription.prescriptionId || null,
-          secureUrl: prescription.secureUrl || prescription.prescriptionUrl || null,
-          prescriptionUrl: prescription.prescriptionUrl || prescription.secureUrl || null,
-        };
-      }
-
       // Write Immutable SaleInvoice Document
       const invoicePayload: Record<string, any> = {
         id: invoiceId,
@@ -568,8 +527,6 @@ export const posService = {
         loadingUnloadingAmount: summary.loadingUnloadingAmount,
         roundOff: summary.roundOff,
         grandTotal: summary.grandTotal,
-        hasScheduleHDrugs,
-        prescription: sanitizedPrescription,
         status: 'completed',
         createdByUid: caller.uid,
         createdByName: caller.displayName || caller.email || 'Cashier',
@@ -664,7 +621,6 @@ export const posService = {
           grandTotal: summary.grandTotal,
           itemCount: items.length,
           paymentMode,
-          hasScheduleHDrugs,
         },
       });
 
@@ -704,23 +660,7 @@ export const posService = {
         }
       }
 
-      if (hasScheduleHDrugs && prescription) {
-        await logAuditEvent(organizationId, {
-          actorUid: caller.uid,
-          actorEmail: caller.email || null,
-          actorDisplayName: caller.displayName || null,
-          action: 'prescription.sale.completed',
-          entityType: 'sale',
-          entityId: invoiceId,
-          storeId,
-          metadata: {
-            invoiceNumber,
-            doctorName: prescription.doctorName,
-            doctorRegNo: prescription.doctorRegNo,
-            patientName: prescription.patientName,
-          },
-        });
-      }
+
 
       if (clinicalOverrideReason) {
         try {

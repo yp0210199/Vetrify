@@ -659,7 +659,6 @@ export const PosView: React.FC = () => {
         items: cartItems,
         freightAmount: parseFloat(freightAmount) || 0,
         loadingUnloadingAmount: parseFloat(loadingUnloadingAmount) || 0,
-        prescription: null,
         creditOverrideUsed: creditOverrideApproved,
         clinicalOverrideReason: null,
         caller: {

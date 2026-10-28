@@ -438,6 +438,19 @@ service cloud.firestore {
       }
 
       // -----------------------------------------------------------------------
+      // 2k-2. Units Subcollection (/organizations/{orgId}/units/{unitId})
+      // -----------------------------------------------------------------------
+      match /units/{unitId} {
+        allow read: if isStaffMember(orgId);
+
+        allow create, update: if isStaffMember(orgId) &&
+          request.resource.data.organizationId == orgId &&
+          request.resource.data.id == unitId;
+
+        allow delete: if isStaffMember(orgId);
+      }
+
+      // -----------------------------------------------------------------------
       // 2l. HSN Codes Subcollection (/organizations/{orgId}/hsnCodes/{hsnId})
       // -----------------------------------------------------------------------
       match /hsnCodes/{hsnId} {

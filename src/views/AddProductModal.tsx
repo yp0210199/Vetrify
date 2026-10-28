@@ -303,9 +303,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         const dup = await checkDuplicateProduct(
           organization.id,
           formData.brand || '',
-          formData.productName || '',
-          formData.tileDimensions || formData.sanitaryType || '',
-          formData.surfaceFinish || formData.colorFinish || 'Standard'
+          formData.productName || ''
         );
         if (dup) {
           setDuplicateWarning(`Warning: Existing item "${dup.productName}" (${dup.sku}) shares the same brand and model specifications.`);

@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 
 // Load Firebase configuration for REST API verification if needed
 let firebaseApiKey = process.env.VITE_FIREBASE_API_KEY || 'AIzaSyBWggbiS3CX608kJRGqI5kvSIQ3TVyKwqc';
-let firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || 'rx-omni';
+let firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || 'vetrify-web';
 let firestoreDatabaseId = 'ai-studio-vetrify-c2b535f6-47e6-41dc-aa6f-73bb27d55e5a';
 
 try {
