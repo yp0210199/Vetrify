@@ -38,7 +38,7 @@ export const defaultMediaService: MediaService = {
           secureUrl: localUrl,
           bytes: options.file.size,
           originalFilename: options.file.name,
-          folder: `rx-omni/organizations/${options.organizationId}/preview`,
+          folder: `vetrify/organizations/${options.organizationId}/preview`,
           createdAt: new Date().toISOString(),
         },
       };

@@ -216,7 +216,7 @@ app.post('/api/media/upload-signature', async (req, res) => {
     else if (category === 'product-image' || category === 'product_image' || category === 'products') subfolder = 'products';
     else if (category === 'prescription') subfolder = 'prescriptions';
 
-    const folder = `/rx-omni/organizations/${organizationId}/${subfolder}`;
+    const folder = `/vetrify/organizations/${organizationId}/${subfolder}`;
     const safeFileName = `${category}-${Date.now()}-${(originalFilename || 'asset').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
     // Generate authentication parameters using ImageKit SDK
@@ -274,7 +274,7 @@ app.post('/api/media/upload-proxy', async (req, res) => {
     else if (category === 'product-image' || category === 'product_image' || category === 'products') subfolder = 'products';
     else if (category === 'prescription') subfolder = 'prescriptions';
 
-    const folder = `/rx-omni/organizations/${organizationId}/${subfolder}`;
+    const folder = `/vetrify/organizations/${organizationId}/${subfolder}`;
     const safeFileName = `${category || 'asset'}-${Date.now()}-${(originalFilename || 'asset').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
     const ikResult = await imagekit.upload({

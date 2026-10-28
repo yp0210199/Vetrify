@@ -34,7 +34,7 @@ async function runLiveE2ETest() {
   const tinyPngDataUri =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
-  const testFolder = '/rx-omni/test-trash';
+  const testFolder = '/vetrify/test-trash';
   const testFileName = `e2e-test-${Date.now()}.png`;
 
   const uploadResult = await imagekit.upload({
