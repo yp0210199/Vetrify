@@ -247,8 +247,8 @@ export const mediaService = {
       width: ikRes.width,
       height: ikRes.height,
       originalFilename: file.name,
-      folder: ikRes.filePath ? ikRes.filePath.substring(0, ikRes.filePath.lastIndexOf('/')) : authRes.folder,
-      version: ikRes.versionInfo?.id,
+      folder: ikRes.filePath ? ikRes.filePath.substring(0, ikRes.filePath.lastIndexOf('/')) : (authRes?.folder || 'products'),
+      ...(ikRes.versionInfo?.id ? { version: ikRes.versionInfo.id } : {}),
       createdAt: nowIso,
     };
 
