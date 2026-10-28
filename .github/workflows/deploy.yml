@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # अगर आपकी मुख्य ब्रांच का नाम master है, तो यहाँ master लिखें
+      - main # आपकी मुख्य ब्रांच का नाम
 
 permissions:
   contents: read
@@ -39,7 +39,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist # अगर आप Vite यूज़ कर रहे हैं तो dist, अगर CRA (Create React App) है तो build लिखें
+          path: ./dist # Vite के लिए dist, Create React App के लिए build
+          retention-days: 1 # पुरानी फाइल्स को तुरंत हटाने के लिए
 
       - name: Deploy to GitHub Pages
         id: deployment
