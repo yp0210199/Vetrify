@@ -322,6 +322,11 @@ app.post('/api/media/delete', async (req, res) => {
       return res.status(503).json({ error: 'ImageKit server credentials not configured' });
     }
 
+    // If asset was created locally (fallback), just return success
+    if (targetFileId.startsWith('local_')) {
+      return res.json({ success: true, message: 'Local asset asset deleted successfully (skipped ImageKit)' });
+    }
+
     await imagekit.deleteFile(targetFileId);
 
     return res.json({ success: true, message: 'ImageKit asset deleted successfully' });

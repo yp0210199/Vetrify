@@ -180,7 +180,7 @@ export const mediaService = {
         userToken,
       });
     } catch (err: any) {
-      console.warn('Direct ImageKit auth signature request bypassed or failed, using server proxy upload backup:', err);
+      console.warn('Direct ImageKit auth signature request failed:', err);
     }
 
     let ikRes: any = null;
@@ -206,21 +206,11 @@ export const mediaService = {
         });
       } catch (proxyErr: any) {
         console.error('ImageKit server proxy upload failed:', proxyErr);
+        throw new AppError({
+            code: 'UPLOAD_FAILED',
+            message: 'Failed to upload to ImageKit via both direct and proxy methods.',
+        });
       }
-    }
-
-    // 4. Robust Fallback: If ImageKit upload fails or is unconfigured, use local object URL asset for smooth prototyping
-    if (!ikRes || !ikRes.url) {
-      const localUrl = URL.createObjectURL(file);
-      ikRes = {
-        fileId: `local_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        filePath: `/uploads/${file.name}`,
-        url: localUrl,
-        thumbnailUrl: localUrl,
-        size: file.size,
-        width: 1200,
-        height: 1200,
-      };
     }
 
     // Prepare Firestore normalized MediaAsset for ImageKit
