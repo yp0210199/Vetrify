@@ -24,7 +24,7 @@ export const AccessSuspendedView: React.FC = () => {
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-white">Access Suspended</h1>
           <p className="text-xs text-[#94A3B8] leading-relaxed">
-            Your access to <span className="font-semibold text-white">{organization?.name || 'this pharmacy workspace'}</span> has been suspended by an administrator.
+            Your access to <span className="font-semibold text-white">{organization?.name || 'this business workspace'}</span> has been suspended by an administrator.
           </p>
         </div>
 

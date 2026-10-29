@@ -219,7 +219,7 @@ export function SalesReturnModal({ isOpen, onClose, onSuccess }: SalesReturnModa
         {
           uid: user.uid,
           email: user.email,
-          displayName: user.displayName || 'Pharmacist',
+          displayName: user.displayName || 'Showroom Staff',
         },
         {
           storeId: currentStore.id,
@@ -414,13 +414,13 @@ export function SalesReturnModal({ isOpen, onClose, onSuccess }: SalesReturnModa
                               disabled={currentState.returnQty === 0}
                               className="p-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 w-full"
                             >
-                              <option value="sealed_resalable">Sealed Resalable (Restock)</option>
-                              <option value="opened">Opened Medicine (Quarantine)</option>
-                              <option value="damaged">Physical Damage (Quarantine)</option>
-                              <option value="temperature_compromised">Cold-Chain Compromised (Quarantine)</option>
-                              <option value="expired">Expired (Quarantine)</option>
-                              <option value="recalled">Drug Recalled (Quarantine)</option>
-                              <option value="unknown">Unknown Condition (Quarantine)</option>
+                              <option value="sealed_resalable">Original Box / Intact (Restock)</option>
+                              <option value="opened">Open Box / Loose Pieces (Inspect)</option>
+                              <option value="damaged">Chipped / Broken / Damaged (Scrap)</option>
+                              <option value="temperature_compromised">Shade / Caliber Mismatch (Quarantine)</option>
+                              <option value="expired">Hardened / Expired Chemical (Scrap)</option>
+                              <option value="recalled">Factory Batch Defect / Recall (Quarantine)</option>
+                              <option value="unknown">Other Reason (Inspect)</option>
                             </select>
                           </td>
                           <td className="p-2.5 text-right font-medium text-slate-900">

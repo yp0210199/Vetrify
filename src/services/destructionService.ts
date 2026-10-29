@@ -3,21 +3,21 @@ import {
   doc,
   getDoc,
   getDocs,
+  setDoc,
+  updateDoc,
   query,
   where,
+  orderBy,
   limit,
-  runTransaction,
   serverTimestamp,
   Timestamp,
-  updateDoc,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase/config';
 import {
   DestructionRecord,
   DestructionMethod,
-  QuarantineRecord,
+  DestructionStatus,
 } from '../types/firestore';
-import { PharmacyBatch } from '../types/batch';
 import { validateDestructionRecord } from '../lib/firebase/validators';
 import { logAuditEvent } from './auditService';
 import { notificationService } from './notificationService';
@@ -28,14 +28,6 @@ function getDestructionRef(organizationId: string) {
 
 function getDestructionDocRef(organizationId: string, destructionId: string) {
   return doc(db, 'organizations', organizationId, 'destructionRecords', destructionId);
-}
-
-function getBatchDocRef(organizationId: string, batchId: string) {
-  return doc(db, 'organizations', organizationId, 'batches', batchId);
-}
-
-function getQuarantineDocRef(organizationId: string, quarantineId: string) {
-  return doc(db, 'organizations', organizationId, 'quarantineRecords', quarantineId);
 }
 
 export function generateDestructionNumber(): string {
@@ -61,39 +53,73 @@ export interface RequestDestructionPayload {
   quantity: number;
   mrp: number;
   purchasePrice: number;
-  supplierId?: string;
-  supplierName?: string;
   reason: string;
   destructionMethod: DestructionMethod;
   destructionDate: string;
   witnessedByName?: string;
   witnessedByDesignation?: string;
+  supplierId?: string;
+  supplierName?: string;
   notes?: string;
 }
 
 export const destructionService = {
   /**
-   * Submit statutory drug destruction request
+   * Fetch destruction records for an organization with optional store filter
+   */
+  async getDestructionRecords(
+    organizationId: string,
+    filter?: { storeId?: string }
+  ): Promise<DestructionRecord[]> {
+    if (!organizationId) return [];
+
+    try {
+      const colRef = getDestructionRef(organizationId);
+      const constraints: any[] = [];
+
+      if (filter?.storeId) {
+        constraints.push(where('storeId', '==', filter.storeId));
+      }
+
+      const q = query(colRef, ...constraints);
+      const snap = await getDocs(q);
+
+      const records: DestructionRecord[] = [];
+      snap.forEach((d) => {
+        const data = { id: d.id, ...d.data() } as DestructionRecord;
+        if (validateDestructionRecord(data, organizationId)) {
+          records.push(data);
+        }
+      });
+
+      return records;
+    } catch (err) {
+      console.error('Error fetching destruction records:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Request a statutory pharmaceutical / inventory destruction write-off
    */
   async requestDestruction(
     organizationId: string,
     caller: { uid: string; email?: string | null; displayName?: string | null },
     payload: RequestDestructionPayload
   ): Promise<DestructionRecord> {
-    const destructionId = `des_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const desRef = doc(getDestructionRef(organizationId));
+    const now = Timestamp.now();
     const destructionNumber = generateDestructionNumber();
     const certificateNumber = generateCertificateNumber();
-
-    const docRef = getDestructionDocRef(organizationId, destructionId);
     const totalValuation = Math.round(payload.quantity * payload.purchasePrice * 100) / 100;
 
-    const recordPayload: Record<string, any> = {
-      id: destructionId,
+    const record: DestructionRecord = {
+      id: desRef.id,
       organizationId,
       storeId: payload.storeId,
       destructionNumber,
       certificateNumber,
-      quarantineId: payload.quarantineId || null,
+      quarantineId: payload.quarantineId,
       productId: payload.productId,
       productName: payload.productName,
       batchId: payload.batchId,
@@ -103,191 +129,129 @@ export const destructionService = {
       mrp: payload.mrp,
       purchasePrice: payload.purchasePrice,
       totalValuation,
-      supplierId: payload.supplierId || null,
-      supplierName: payload.supplierName || null,
+      supplierId: payload.supplierId,
+      supplierName: payload.supplierName,
       reason: payload.reason,
       destructionMethod: payload.destructionMethod,
       destructionDate: payload.destructionDate,
       requestedByUid: caller.uid,
-      requestedByName: caller.displayName || 'Staff Member',
+      requestedByName: caller.displayName || caller.email || 'Pharmacist',
       approvedByUid: null,
       approvedByName: null,
-      witnessedByName: payload.witnessedByName || null,
-      witnessedByDesignation: payload.witnessedByDesignation || null,
-      notes: payload.notes || null,
+      witnessedByName: payload.witnessedByName,
+      witnessedByDesignation: payload.witnessedByDesignation,
+      notes: payload.notes,
       status: 'destruction_pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: now,
+      updatedAt: now,
     };
 
-    if (!validateDestructionRecord(recordPayload, organizationId)) {
-      throw new Error('Destruction record validation failed.');
+    await setDoc(desRef, record);
+
+    try {
+      await logAuditEvent(organizationId, {
+        actorUid: caller.uid,
+        actorEmail: caller.email || undefined,
+        actorDisplayName: caller.displayName || undefined,
+        action: 'destruction.requested',
+        entityType: 'destruction_record',
+        entityId: desRef.id,
+        storeId: payload.storeId,
+        metadata: {
+          batchNumber: payload.batchNumber,
+          destructionNumber,
+          totalValuation,
+        },
+      });
+
+      await notificationService.createNotification(organizationId, {
+        recipientUid: 'all',
+        type: 'destruction_request',
+        title: 'Stock Destruction Request Pending',
+        message: `Destruction requested for batch ${payload.batchNumber} of ${payload.productName} (${payload.quantity} units).`,
+        severity: 'warning',
+        targetModule: 'sales_returns',
+      });
+    } catch (e) {
+      console.warn('Destruction request side-effects warning:', e);
     }
 
-    await runTransaction(db, async (tx) => {
-      tx.set(docRef, recordPayload);
-
-      // If linked to quarantine, update quarantine status
-      if (payload.quarantineId) {
-        const qRef = getQuarantineDocRef(organizationId, payload.quarantineId);
-        const qSnap = await tx.get(qRef);
-        if (qSnap.exists()) {
-          tx.update(qRef, {
-            status: 'moved_to_destruction',
-            updatedAt: serverTimestamp(),
-          });
-        }
-      }
-    });
-
-    await logAuditEvent(organizationId, {
-      actorUid: caller.uid,
-      actorEmail: caller.email || null,
-      actorDisplayName: caller.displayName || null,
-      action: 'destruction.requested' as any,
-      entityType: 'destruction' as any,
-      entityId: destructionId,
-      storeId: payload.storeId,
-      metadata: {
-        destructionNumber,
-        batchNumber: payload.batchNumber,
-        quantity: payload.quantity,
-        totalValuation,
-      },
-    });
-
-    return {
-      ...recordPayload,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    } as DestructionRecord;
+    return record;
   },
 
   /**
-   * Approve destruction request (Manager/Admin/Owner)
+   * Approve a pending destruction request by authorized manager/owner
    */
   async approveDestruction(
     organizationId: string,
     caller: { uid: string; email?: string | null; displayName?: string | null },
     destructionId: string
-  ): Promise<void> {
-    const docRef = getDestructionDocRef(organizationId, destructionId);
-    const snap = await getDoc(docRef);
-
+  ): Promise<DestructionRecord> {
+    const desRef = getDestructionDocRef(organizationId, destructionId);
+    const snap = await getDoc(desRef);
     if (!snap.exists()) {
-      throw new Error('Destruction record not found.');
+      throw new Error('Destruction record not found');
     }
-    const data = snap.data() as DestructionRecord;
 
-    await updateDoc(docRef, {
-      status: 'approved_for_destruction',
+    const updates = {
+      status: 'approved_for_destruction' as DestructionStatus,
       approvedByUid: caller.uid,
-      approvedByName: caller.displayName || 'Manager',
-      updatedAt: serverTimestamp(),
-    });
+      approvedByName: caller.displayName || caller.email || 'Manager',
+      updatedAt: Timestamp.now(),
+    };
 
-    await logAuditEvent(organizationId, {
-      actorUid: caller.uid,
-      actorEmail: caller.email || null,
-      actorDisplayName: caller.displayName || null,
-      action: 'destruction.approved' as any,
-      entityType: 'destruction' as any,
-      entityId: destructionId,
-      storeId: data.storeId,
-      metadata: {
-        destructionNumber: data.destructionNumber,
-        approvedByUid: caller.uid,
-      },
-    });
+    await updateDoc(desRef, updates);
+
+    return {
+      id: snap.id,
+      ...snap.data(),
+      ...updates,
+    } as DestructionRecord;
   },
 
   /**
-   * Complete statutory destruction and issue certificate
+   * Complete and certify destruction procedure
    */
   async completeDestruction(
     organizationId: string,
     caller: { uid: string; email?: string | null; displayName?: string | null },
     destructionId: string
-  ): Promise<void> {
-    const docRef = getDestructionDocRef(organizationId, destructionId);
+  ): Promise<DestructionRecord> {
+    const desRef = getDestructionDocRef(organizationId, destructionId);
+    const snap = await getDoc(desRef);
+    if (!snap.exists()) {
+      throw new Error('Destruction record not found');
+    }
 
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(docRef);
-      if (!snap.exists()) {
-        throw new Error('Destruction record not found.');
-      }
-      const data = snap.data() as DestructionRecord;
+    const updates = {
+      status: 'destroyed' as DestructionStatus,
+      updatedAt: Timestamp.now(),
+    };
 
-      if (data.status !== 'approved_for_destruction' && data.status !== 'destruction_pending') {
-        throw new Error(`Cannot complete destruction in status ${data.status}.`);
-      }
+    await updateDoc(desRef, updates);
 
-      // Ensure batch status is updated to destroyed
-      const batchRef = getBatchDocRef(organizationId, data.batchId);
-      const batchSnap = await tx.get(batchRef);
-      if (batchSnap.exists()) {
-        tx.update(batchRef, {
-          status: 'destroyed',
-          availableQuantity: 0,
-          quantity: 0,
-          updatedAt: serverTimestamp(),
-          updatedByUid: caller.uid,
-        });
-      }
-
-      tx.update(docRef, {
-        status: 'destroyed',
-        updatedAt: serverTimestamp(),
+    try {
+      await logAuditEvent(organizationId, {
+        actorUid: caller.uid,
+        actorEmail: caller.email || undefined,
+        actorDisplayName: caller.displayName || undefined,
+        action: 'destruction.completed',
+        entityType: 'destruction_record',
+        entityId: destructionId,
+        metadata: {
+          destructionNumber: snap.data().destructionNumber,
+        },
       });
-    });
-
-    await logAuditEvent(organizationId, {
-      actorUid: caller.uid,
-      actorEmail: caller.email || null,
-      actorDisplayName: caller.displayName || null,
-      action: 'destruction.completed' as any,
-      entityType: 'destruction' as any,
-      entityId: destructionId,
-      metadata: {
-        completedByUid: caller.uid,
-      },
-    });
-  },
-
-  /**
-   * Fetch destruction records
-   */
-  async getDestructionRecords(
-    organizationId: string,
-    options: {
-      storeId?: string;
-      status?: string;
-      pageSize?: number;
-    } = {}
-  ): Promise<DestructionRecord[]> {
-    const ref = getDestructionRef(organizationId);
-    const constraints: any[] = [];
-
-    if (options.storeId) {
-      constraints.push(where('storeId', '==', options.storeId));
-    }
-    if (options.status && options.status !== 'all') {
-      constraints.push(where('status', '==', options.status));
+    } catch (e) {
+      console.warn('Audit error:', e);
     }
 
-    constraints.push(limit(options.pageSize || 50));
-
-    const q = query(ref, ...constraints);
-    const snap = await getDocs(q);
-
-    const list: DestructionRecord[] = [];
-    snap.docs.forEach((d) => {
-      const data = { id: d.id, ...d.data() };
-      if (validateDestructionRecord(data, organizationId)) {
-        list.push(data as DestructionRecord);
-      }
-    });
-
-    return list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    return {
+      id: snap.id,
+      ...snap.data(),
+      ...updates,
+    } as DestructionRecord;
   },
 };
+
+export default destructionService;

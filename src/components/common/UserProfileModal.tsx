@@ -351,7 +351,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           <div className="p-3 bg-[#E6F4F1]/30 dark:bg-slate-800/50 rounded-xl border border-[#0D5C63]/15 dark:border-slate-700 space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-[#64748B] dark:text-slate-400 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#0D5C63]" /> Pharmacy Legal Entity:
+                <Building2 className="w-3.5 h-3.5 text-[#0066FF]" /> Registered Business Entity:
               </span>
               <span className="font-bold text-[#0B1F33] dark:text-white">{organization.name}</span>
             </div>

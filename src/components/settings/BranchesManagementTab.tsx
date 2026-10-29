@@ -94,11 +94,11 @@ export const BranchesManagementTab: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
         <div>
           <h2 className="text-lg font-bold text-[#0B1F33] flex items-center gap-2">
-            <Store className="w-5 h-5 text-[#0D5C63]" />
-            Pharmacy Store Branches & Dispensaries
+            <Store className="w-5 h-5 text-[#0066FF]" />
+            Showroom Branches & Godown Yards
           </h2>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Manage multi-location pharmacy branches, dedicated Form 20B/21B drug licenses, and GSTIN billing contexts.
+            Manage multi-location showrooms, godown storage yards, depots, and GSTIN billing points.
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export const BranchesManagementTab: React.FC = () => {
               icon={Plus}
               onClick={handleOpenAdd}
             >
-              Add Pharmacy Branch
+              Add Showroom / Godown
             </Button>
           )}
         </div>
@@ -254,7 +254,7 @@ export const BranchesManagementTab: React.FC = () => {
           <p className="text-xs text-[#64748B] mt-1">
             {searchQuery
               ? 'Try refining your search keyword.'
-              : 'Add your first pharmacy branch location.'}
+              : 'Add your first showroom or godown branch location.'}
           </p>
         </div>
       )}

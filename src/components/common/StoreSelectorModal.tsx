@@ -38,7 +38,7 @@ export const StoreSelectorModal: React.FC<StoreSelectorModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Store & Branch Selection"
-      subtitle="Switch active pharmacy billing context and drug license entity"
+      subtitle="Switch active showroom or godown billing context and warehouse entity"
       size="md"
       footer={
         <div className="flex items-center justify-between w-full">
@@ -63,14 +63,14 @@ export const StoreSelectorModal: React.FC<StoreSelectorModalProps> = ({
               }}
               className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-start justify-between ${
                 isSelected
-                  ? 'border-[#0D5C63] bg-[#E6F4F1]/40 shadow-xs'
+                  ? 'border-[#0066FF] bg-blue-50/40 shadow-xs'
                   : 'border-[#E2E8F0] hover:border-[#CBD5E1] bg-white'
               }`}
             >
               <div className="flex items-start gap-3.5">
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    isSelected ? 'bg-[#0D5C63] text-white' : 'bg-[#F1F5F9] text-[#0D5C63]'
+                    isSelected ? 'bg-[#0066FF] text-white' : 'bg-[#F1F5F9] text-[#0066FF]'
                   }`}
                 >
                   <Building className="w-5 h-5" />
@@ -79,7 +79,7 @@ export const StoreSelectorModal: React.FC<StoreSelectorModalProps> = ({
                   <div className="flex items-center gap-2">
                     <h4 className="text-sm font-bold text-[#0B1F33]">{store.name}</h4>
                     {isSelected && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#0D5C63] text-white rounded-full">
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#0066FF] text-white rounded-full">
                         ACTIVE CONTEXT
                       </span>
                     )}
@@ -90,7 +90,7 @@ export const StoreSelectorModal: React.FC<StoreSelectorModalProps> = ({
                   </p>
                   <div className="flex items-center gap-4 mt-2 text-[11px] text-[#64748B] font-mono">
                     <span>GSTIN: {store.gstin}</span>
-                    <span>DL: {store.dlNumber}</span>
+                    <span>Trade Reg: {store.dlNumber}</span>
                   </div>
                 </div>
               </div>

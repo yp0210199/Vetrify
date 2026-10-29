@@ -52,7 +52,11 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
               <span className="uppercase font-mono bg-[#F1F5F9] px-1.5 py-0.5 rounded">
                 {asset.format || (isPdf ? 'PDF' : 'IMG')}
               </span>
-              <span>{(asset.bytes / 1024).toFixed(0)} KB</span>
+              <span>
+                {typeof asset.bytes === 'number' && !isNaN(asset.bytes) && asset.bytes > 0
+                  ? `${(asset.bytes / 1024).toFixed(0)} KB`
+                  : 'CDN Cloud'}
+              </span>
             </div>
           </div>
         )}

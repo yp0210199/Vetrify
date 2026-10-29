@@ -69,7 +69,7 @@ export function ReturnsWorkspace() {
   // Quick Quarantine modal
   const [quarantineModalBatch, setQuarantineModalBatch] = useState<PharmacyBatch | null>(null);
   const [quarantineQty, setQuarantineQty] = useState(1);
-  const [quarantineReason, setQuarantineReason] = useState('Expired / Damaged Medicine Quarantine');
+  const [quarantineReason, setQuarantineReason] = useState('Chipped / Broken Ceramic & Damaged Lot Quarantine');
   const [isQuarantining, setIsQuarantining] = useState(false);
 
   // Destruction Request modal
@@ -86,7 +86,7 @@ export function ReturnsWorkspace() {
   } | null>(null);
 
   const [destructionMethod, setDestructionMethod] = useState<'incineration' | 'autoclaving' | 'chemical' | 'deep_burial' | 'vendor_takeback'>('incineration');
-  const [destructionReason, setDestructionReason] = useState('Statutory Disposal of Expired Controlled Drugs');
+  const [destructionReason, setDestructionReason] = useState('Disposal of Broken Slabs, Damaged Tiles & Scrap Materials');
   const [witnessName, setWitnessName] = useState('');
   const [witnessDesignation, setWitnessDesignation] = useState('');
   const [isSubmittingDestruction, setIsSubmittingDestruction] = useState(false);
@@ -141,7 +141,7 @@ export function ReturnsWorkspace() {
         {
           uid: user.uid,
           email: user.email,
-          displayName: user.displayName || 'Pharmacist',
+          displayName: user.displayName || 'Quality Inspector',
         },
         {
           storeId: currentStore.id,
@@ -176,7 +176,7 @@ export function ReturnsWorkspace() {
         {
           uid: user.uid,
           email: user.email,
-          displayName: user.displayName || 'Pharmacist',
+          displayName: user.displayName || 'Quality Inspector',
         },
         {
           storeId: currentStore.id,
@@ -297,7 +297,7 @@ export function ReturnsWorkspace() {
         <KpiCard
           title="Destructions"
           value={destructionRecords.length.toString()}
-          subtitle="Statutory Drug Disposals"
+          subtitle="Scrap & Damaged Disposals"
           icon={<Flame className="w-5 h-5 text-red-600" />}
         />
       </div>
@@ -819,12 +819,12 @@ export function ReturnsWorkspace() {
         <Modal
           isOpen={!!destructionModalItem}
           onClose={() => setDestructionModalItem(null)}
-          title="Initiate Statutory Pharmaceutical Destruction"
+          title="Initiate Damaged Stock & Scrap Disposal"
           size="lg"
         >
           <div className="space-y-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800">
-              This action initiates formal statutory drug destruction in compliance with pharmaceutical regulations.
+              This action initiates formal scrap accounting and disposal of broken ceramic tiles, cracked sanitaryware, or damaged stock.
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded border border-slate-200">
@@ -836,39 +836,39 @@ export function ReturnsWorkspace() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                Destruction Method
+                Disposal Method
               </label>
               <select
                 value={destructionMethod}
                 onChange={(e) => setDestructionMethod(e.target.value as any)}
                 className="p-2 text-sm border border-slate-300 rounded-lg w-full"
               >
-                <option value="incineration">High Temperature Incineration</option>
-                <option value="autoclaving">Autoclaving & Shredding</option>
-                <option value="chemical">Chemical Neutralization</option>
-                <option value="deep_burial">Secured Deep Burial</option>
-                <option value="vendor_takeback">Vendor Statutory Take-back</option>
+                <option value="incineration">Mechanical Crushing & Aggregate Recycling</option>
+                <option value="autoclaving">Ceramic Scrap Yard Landfill</option>
+                <option value="chemical">Defective Glaze Scrap Disposal</option>
+                <option value="deep_burial">Hardened Adhesive Disposal</option>
+                <option value="vendor_takeback">Factory Warranty Take-back / Replacement</option>
               </select>
             </div>
 
             <Input
-              label="Destruction Justification / Reason"
+              label="Disposal Justification / Reason"
               value={destructionReason}
               onChange={(e) => setDestructionReason(e.target.value)}
             />
 
             <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Witness Name"
+                label="Witness / Inspector Name"
                 value={witnessName}
                 onChange={(e) => setWitnessName(e.target.value)}
-                placeholder="e.g. Dr. A. Sharma"
+                placeholder="e.g. Ramesh Kumar"
               />
               <Input
-                label="Witness Designation"
+                label="Inspector Designation"
                 value={witnessDesignation}
                 onChange={(e) => setWitnessDesignation(e.target.value)}
-                placeholder="e.g. Senior Drug Inspector"
+                placeholder="e.g. Godown Quality Supervisor"
               />
             </div>
 

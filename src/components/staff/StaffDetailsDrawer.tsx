@@ -78,8 +78,11 @@ export const StaffDetailsDrawer: React.FC<StaffDetailsDrawerProps> = ({
         return 'bg-[#0D5C63] text-white border-[#0D5C63]';
       case 'manager':
         return 'bg-[#7C3AED]/10 text-[#6D28D9] border-[#DDD6FE]';
+      case 'sales_staff':
       case 'pharmacist':
         return 'bg-[#15803D]/10 text-[#15803D] border-[#BBF7D0]';
+      case 'godown_supervisor':
+        return 'bg-[#0066FF]/10 text-[#0066FF] border-[#99C2FF]';
       case 'cashier':
         return 'bg-[#D97706]/10 text-[#B45309] border-[#FDE68A]';
       default:

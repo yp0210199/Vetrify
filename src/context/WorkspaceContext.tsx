@@ -289,7 +289,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     } catch (err: any) {
       console.error('Workspace load error:', err);
       setWorkspaceState('invalid-membership');
-      setError('An error occurred while verifying your pharmacy workspace access.');
+      setError('An error occurred while verifying your Vetrify business workspace access.');
     }
   }, [user, isAuthenticated, authStatus, selectedOrgIdOverride]);
 
@@ -343,11 +343,11 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   /**
-   * Create a new pharmacy organization workspace
+   * Create a new Vetrify organization workspace
    */
   const createWorkspace = async (params: CreateWorkspaceParams) => {
     if (!user) {
-      throw new Error('You must be signed in to create a pharmacy workspace.');
+      throw new Error('You must be signed in to create a Vetrify workspace.');
     }
 
     if (isProvisioningRef.current) {
@@ -364,7 +364,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         ...params,
         ownerUid: user.uid,
         ownerEmail: user.email || '',
-        ownerName: user.displayName || user.email?.split('@')[0] || 'Pharmacy Owner',
+        ownerName: user.displayName || user.email?.split('@')[0] || 'Business Owner',
       });
 
       try {
@@ -393,7 +393,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       isProvisioningRef.current = false;
       console.error('Workspace provisioning error:', err);
 
-      let friendlyMessage = 'Unable to create your pharmacy workspace right now. Please check your connection and try again.';
+      let friendlyMessage = 'Unable to create your Vetrify workspace right now. Please check your connection and try again.';
       if (err?.code === 'permission-denied' || err?.message?.includes('permission')) {
         friendlyMessage = 'Permission denied while creating workspace. Please ensure your session is active and try again.';
       }

@@ -382,7 +382,7 @@ export const TransferDetailDrawer: React.FC<TransferDetailDrawerProps> = ({
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="bg-[#F8FAFC] text-[#64748B] font-bold border-b border-[#E2E8F0]">
-                      <th className="py-2.5 px-3">Medicine Master</th>
+                      <th className="py-2.5 px-3">Catalog Item / Material</th>
                       <th className="py-2.5 px-3 text-center">Req Qty</th>
                       <th className="py-2.5 px-3 text-center">Dispatched Qty</th>
                       <th className="py-2.5 px-3 text-center">Received Qty</th>

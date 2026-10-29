@@ -716,35 +716,54 @@ export const posService = {
   async getRecentInvoices(
     organizationId: string,
     storeId?: string,
-    limitCount = 20
+    limitCount = 30
   ): Promise<SaleInvoice[]> {
     if (!organizationId) return [];
     const ref = getInvoicesRef(organizationId);
-    const constraints: any[] = [];
 
-    if (storeId) {
-      constraints.push(where('storeId', '==', storeId));
-    }
-    constraints.push(orderBy('createdAt', 'desc'));
-    constraints.push(limit(limitCount));
-
+    let docs: any[] = [];
     try {
-      const q = query(ref, ...constraints);
+      // Primary: query ordered by createdAt desc
+      const q = query(ref, orderBy('createdAt', 'desc'), limit(limitCount));
       const snapshot = await getDocs(q);
-      const invoices: SaleInvoice[] = [];
-
-      snapshot.docs.forEach((docSnap) => {
-        const data = { id: docSnap.id, ...docSnap.data() };
-        if (validateSaleInvoice(data, organizationId)) {
-          invoices.push(data as SaleInvoice);
-        }
-      });
-
-      return invoices;
-    } catch (err) {
-      console.error('Error fetching recent invoices:', err);
-      return [];
+      docs = snapshot.docs;
+    } catch (e1) {
+      console.warn('Query with orderBy(createdAt) failed, falling back to unordered fetch:', e1);
+      try {
+        const fallbackQuery = query(ref, limit(limitCount));
+        const snapshot = await getDocs(fallbackQuery);
+        docs = snapshot.docs;
+      } catch (e2) {
+        console.error('Error fetching recent invoices:', e2);
+        return [];
+      }
     }
+
+    const invoices: SaleInvoice[] = [];
+    for (const docSnap of docs) {
+      const data = { id: docSnap.id, ...docSnap.data() } as any;
+      // Filter by storeId if provided and matches, but if storeId is not present on invoice still include
+      if (storeId && data.storeId && data.storeId !== storeId) {
+        continue;
+      }
+      invoices.push(data as SaleInvoice);
+    }
+
+    // If store-specific filter returned 0 but docs exist in the organization, return all org invoices
+    if (invoices.length === 0 && docs.length > 0) {
+      for (const docSnap of docs) {
+        invoices.push({ id: docSnap.id, ...docSnap.data() } as SaleInvoice);
+      }
+    }
+
+    // Sort in memory by createdAt descending
+    invoices.sort((a: any, b: any) => {
+      const tA = a.createdAt?.toMillis?.() || new Date(a.createdAt || 0).getTime() || 0;
+      const tB = b.createdAt?.toMillis?.() || new Date(b.createdAt || 0).getTime() || 0;
+      return tB - tA;
+    });
+
+    return invoices;
   },
 
   /**

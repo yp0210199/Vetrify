@@ -19,14 +19,14 @@
     },
     "Organization": {
       "title": "Organization",
-      "description": "Pharmacy enterprise legal tenant (does NOT contain ownerUid)",
+      "description": "Tiles, Sanitaryware, Faucets & Construction Materials business enterprise legal tenant (does NOT contain ownerUid)",
       "type": "object",
       "properties": {
         "id": { "type": "string", "description": "Unique Organization ID" },
-        "name": { "type": "string", "description": "Pharmacy Trade Name" },
+        "name": { "type": "string", "description": "Business Trade Name" },
         "legalName": { "type": "string" },
         "gstin": { "type": "string" },
-        "drugLicenseNumber": { "type": "string" },
+        "tradeLicenseNumber": { "type": "string" },
         "currency": { "type": "string", "enum": ["INR"] },
         "timezone": { "type": "string", "enum": ["Asia/Kolkata"] },
         "status": { "type": "string", "enum": ["active", "inactive", "trial"] },
@@ -38,7 +38,7 @@
     },
     "PharmacyStore": {
       "title": "PharmacyStore",
-      "description": "Store branch or hospital counter under an organization",
+      "description": "Showroom branch or godown yard under a business organization",
       "type": "object",
       "properties": {
         "id": { "type": "string" },

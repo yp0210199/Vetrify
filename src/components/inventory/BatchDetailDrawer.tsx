@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Package, MapPin, ClipboardList, ShieldAlert, FileText } from 'lucide-react';
+import { X, Calendar, DollarSign, Package, MapPin, ClipboardList, ShieldCheck, FileText, Layers, Tag, Grid } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useToast } from '../../context/ToastContext';
 import { PharmacyBatch } from '../../types/batch';
-import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase/config';
-import { getDaysUntilExpiry, getBatchExpiryState } from '../../utils/batchUtils';
 import { safeToFixed } from '../../lib/formatting/formatters';
 
 interface BatchDetailDrawerProps {
@@ -67,8 +66,11 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
 
   if (!isOpen || !batch) return null;
 
-  const daysRemaining = getDaysUntilExpiry(batch);
-  const expiryState = getBatchExpiryState(batch);
+  const mfgDateStr = batch.manufacturingDate
+    ? (typeof (batch.manufacturingDate as any).toDate === 'function'
+        ? (batch.manufacturingDate as any).toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        : new Date(batch.manufacturingDate as any).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))
+    : '—';
 
   return (
     <div className="fixed inset-0 bg-[#0B1F33]/40 backdrop-blur-xs flex justify-end z-50">
@@ -79,9 +81,10 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
         {/* Drawer Header */}
         <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B] block">Batch Lot Dossier</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B] block">Stock Lot & Shade Dossier</span>
             <h3 className="font-extrabold text-[#0B1F33] text-sm flex items-center gap-1.5 font-mono">
-              {batch.batchNumber}
+              <Layers className="w-4 h-4 text-[#0D5C63]" />
+              {batch.shadeNumber || batch.batchNumber}
             </h3>
           </div>
           <button
@@ -97,55 +100,74 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
           
           {/* Status Alert Banner */}
           <div className={`p-3.5 rounded-xl border flex items-start gap-2.5 ${
-            expiryState === 'expired'
-              ? 'bg-red-50 border-red-200 text-red-800'
-              : expiryState === 'expiring-soon'
+            batch.status === 'active'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : batch.status === 'quarantined'
               ? 'bg-amber-50 border-amber-200 text-amber-800'
-              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-slate-50 border-slate-200 text-slate-800'
           }`}>
-            <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+            <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
             <div className="text-xs">
               <span className="font-extrabold block">
-                {expiryState === 'expired'
-                  ? 'Expired Lot (Excluded from Sales)'
-                  : expiryState === 'expiring-soon'
-                  ? `Expiring Soon (${daysRemaining} Days Left)`
-                  : 'Active & Sellable Batch'}
+                {batch.status === 'active'
+                  ? 'Sellable Showroom Stock Lot'
+                  : batch.status === 'quarantined'
+                  ? 'Quarantined Lot (Excluded from Sales)'
+                  : `Status: ${batch.status.toUpperCase()}`}
               </span>
               <p className="opacity-90 mt-0.5">
-                Current Lot status: <strong className="uppercase font-mono text-[10px]">{batch.status}</strong>.
+                Current Lot status: <strong className="uppercase font-mono text-[10px]">{batch.status}</strong>. Available for showroom billing and warehouse dispatch.
               </p>
             </div>
           </div>
 
           {/* Product Info Summary */}
           <div className="space-y-2.5">
-            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Medicine Master Identification</h4>
+            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Catalog Item Master</h4>
             <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
               <span className="text-[10px] font-mono font-bold text-[#64748B] block">SKU: {batch.productSku || '—'}</span>
               <span className="font-extrabold text-xs text-[#0B1F33] block mt-0.5">{batch.productName || '—'}</span>
             </div>
           </div>
 
-          {/* Date Information */}
+          {/* Tile Specifications: Shade, Tone, Caliber & Grade */}
           <div className="space-y-2.5">
-            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Regulatory & Expiry Timeline</h4>
+            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Shade, Tone & Caliber Specs</h4>
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="bg-[#F8FAFC] p-2.5 rounded-2xl border border-[#E2E8F0]">
+                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Shade Code</span>
+                <span className="text-xs font-bold text-[#0B1F33] font-mono block mt-1">{batch.shadeNumber || batch.batchNumber}</span>
+              </div>
+              <div className="bg-[#F8FAFC] p-2.5 rounded-2xl border border-[#E2E8F0]">
+                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Tone Code</span>
+                <span className="text-xs font-bold text-[#0D5C63] font-mono block mt-1">{batch.toneCode || 'Standard'}</span>
+              </div>
+              <div className="bg-[#F8FAFC] p-2.5 rounded-2xl border border-[#E2E8F0]">
+                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Caliber / Grade</span>
+                <span className="text-xs font-bold text-[#0B1F33] font-mono block mt-1">{batch.caliberCode || 'Premium'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Production & Inward Timeline */}
+          <div className="space-y-2.5">
+            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Manufacturing & Inward Timeline</h4>
             <div className="grid grid-cols-2 gap-3.5">
               <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0] flex items-center gap-2.5">
                 <Calendar className="w-4 h-4 text-[#94A3B8]" />
                 <div>
-                  <span className="text-[10px] text-[#64748B] block">Mfg Date</span>
+                  <span className="text-[10px] text-[#64748B] block">Production Date</span>
                   <span className="text-xs font-bold text-[#0B1F33]">
-                    {batch.manufacturingDate ? new Date(batch.manufacturingDate.toMillis()).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : '—'}
+                    {mfgDateStr}
                   </span>
                 </div>
               </div>
               <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0] flex items-center gap-2.5">
-                <Calendar className="w-4 h-4 text-[#94A3B8]" />
+                <MapPin className="w-4 h-4 text-[#94A3B8]" />
                 <div>
-                  <span className="text-[10px] text-[#64748B] block">Expiry Date</span>
+                  <span className="text-[10px] text-[#64748B] block">Godown / Yard Bay</span>
                   <span className="text-xs font-bold text-[#0B1F33]">
-                    {batch.expiryDate ? new Date(batch.expiryDate.toMillis()).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : '—'}
+                    {batch.storageLocation || 'Main Yard A-01'}
                   </span>
                 </div>
               </div>
@@ -154,18 +176,18 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
 
           {/* Quantities */}
           <div className="space-y-2.5">
-            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Physical Quantity Balances</h4>
+            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Physical Stock Balances (Boxes / Units)</h4>
             <div className="grid grid-cols-3 gap-2.5 text-center">
               <div className="bg-[#F8FAFC] p-2.5 rounded-2xl border border-[#E2E8F0]">
-                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Total Lot</span>
+                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Total Inwarded</span>
                 <span className="text-sm font-bold text-[#0B1F33] font-mono-num block mt-1">{batch.quantity}</span>
               </div>
               <div className="bg-[#F8FAFC] p-2.5 rounded-2xl border border-[#E2E8F0]">
-                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">In Cart / Res.</span>
+                <span className="text-[9px] text-[#64748B] block font-semibold uppercase">Reserved / In Cart</span>
                 <span className="text-sm font-bold text-amber-600 font-mono-num block mt-1">{batch.reservedQuantity}</span>
               </div>
               <div className="bg-teal-50/50 p-2.5 rounded-2xl border border-teal-200 text-teal-900">
-                <span className="text-[9px] text-teal-700 block font-bold uppercase">Sellable</span>
+                <span className="text-[9px] text-teal-700 block font-bold uppercase">Sellable Available</span>
                 <span className="text-sm font-black font-mono-num block mt-1">{batch.availableQuantity}</span>
               </div>
             </div>
@@ -173,10 +195,10 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
 
           {/* Pricing Info */}
           <div className="space-y-2.5">
-            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Price Structures</h4>
+            <h4 className="text-[11px] uppercase font-extrabold tracking-wider text-[#64748B]">Commercial Rate Structure</h4>
             <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0] divide-y divide-[#E2E8F0]/80 space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#64748B]">Purchase Unit Cost (Net Gst):</span>
+                <span className="text-[#64748B]">Purchase Unit Cost (Net GST):</span>
                 <strong className="font-mono text-[#0B1F33]">₹{safeToFixed(batch.purchasePrice)}</strong>
               </div>
               <div className="flex justify-between items-center text-xs pt-2">
@@ -184,18 +206,9 @@ export const BatchDetailDrawer: React.FC<BatchDetailDrawerProps> = ({
                 <strong className="font-mono text-[#0B1F33]">₹{safeToFixed(batch.mrp)}</strong>
               </div>
               <div className="flex justify-between items-center text-xs pt-2">
-                <span className="text-[#64748B]">Store Selling Price:</span>
+                <span className="text-[#64748B]">Showroom Sale Price:</span>
                 <strong className="font-mono text-[#0D5C63]">₹{safeToFixed(batch.salePrice)}</strong>
               </div>
-            </div>
-          </div>
-
-          {/* Location & Cabinets */}
-          <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0] flex items-center gap-2.5 text-xs">
-            <MapPin className="w-4 h-4 text-[#94A3B8]" />
-            <div>
-              <span className="text-[#64748B]">Shelf Storage Coordinates:</span>
-              <strong className="text-[#0B1F33] block mt-0.5">{batch.storageLocation || 'Unspecified location shelf'}</strong>
             </div>
           </div>
 

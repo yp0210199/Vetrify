@@ -206,7 +206,7 @@ export const WholesaleView: React.FC = () => {
     try {
       await wholesaleService.reserveWholesaleOrderStock(orgId, storeId, caller, orderId);
       await loadAllData();
-      alert('Stock successfully reserved in FEFO sequence!');
+      alert('Stock successfully reserved with matching shade and lot sequence!');
     } catch (err: any) {
       alert(err.message || 'Stock reservation failed.');
     }
@@ -388,9 +388,18 @@ export const WholesaleView: React.FC = () => {
               metrics={metrics}
               recentOrders={orders}
               onNavigateTab={(t) => setActiveTab(t)}
-              onOpenOrderWizard={() => setIsOpenOrderWizard(true)}
-              onOpenCustomerModal={() => setIsOpenCustomerModal(true)}
-              onOpenQuoteModal={() => setIsOpenQuoteModal(true)}
+              onOpenOrderWizard={() => {
+                setActiveTab('orders');
+                setIsOpenOrderWizard(true);
+              }}
+              onOpenCustomerModal={() => {
+                setActiveTab('customers');
+                setIsOpenCustomerModal(true);
+              }}
+              onOpenQuoteModal={() => {
+                setActiveTab('quotations');
+                setIsOpenQuoteModal(true);
+              }}
             />
           )}
 

@@ -142,7 +142,34 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     }
 
     if (initialData) {
-      const type = initialData.categoryType || 'tiles';
+      let type: CategoryType = initialData.categoryType || 'tiles';
+      if (!initialData.categoryType) {
+        const cat = ((initialData.categoryName || '') + ' ' + (initialData.productName || '')).toLowerCase();
+        if (
+          cat.includes('sanitary') ||
+          cat.includes('basin') ||
+          cat.includes('closet') ||
+          cat.includes('toilet') ||
+          (initialData as any).sanitaryType
+        ) {
+          type = 'sanitaryware';
+        } else if (
+          cat.includes('faucet') ||
+          cat.includes('tap') ||
+          cat.includes('diverter') ||
+          (initialData as any).fittingType
+        ) {
+          type = 'faucets';
+        } else if (
+          cat.includes('adhesive') ||
+          cat.includes('grout') ||
+          (initialData as any).chemicalType
+        ) {
+          type = 'adhesives';
+        } else if (cat.includes('pipe') || (initialData as any).pipeType) {
+          type = 'other';
+        }
+      }
       setCategoryType(type);
       setFormData({
         ...initialData,
@@ -168,14 +195,18 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           secureUrl: initialData.mediaUrl,
           fileName: 'product_image.jpg',
           originalName: 'product_image.jpg',
-          fileSize: 0,
+          fileSize: 1024,
+          bytes: 1024,
           format: 'jpg',
           resourceType: 'image',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+      } else {
+        setMediaAsset(null);
       }
     } else {
+      setMediaAsset(null);
       setCategoryType('tiles');
       setFormData({
         productName: '',

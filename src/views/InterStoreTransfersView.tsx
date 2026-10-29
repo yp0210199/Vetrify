@@ -164,7 +164,7 @@ export const InterStoreTransfersView: React.FC = () => {
             Inter-Store Stock Transfers & Branch Rebalancing
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Manage multi-branch inventory transfers, FEFO batch allocations, in-transit tracking, and rule-based rebalancing.
+            Manage multi-branch inventory transfers, shade and lot allocations, in-transit gate-pass tracking, and godown rebalancing.
           </p>
         </div>
 
@@ -323,7 +323,7 @@ export const InterStoreTransfersView: React.FC = () => {
         {activeTab !== 'rebalance' && (
           <div className="flex items-center justify-between gap-3">
             <SearchInput
-              placeholder="Filter transfers by STR number, store name, requested medicine, or staff..."
+              placeholder="Filter transfers by STR number, showroom/godown, requested item, or staff..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full max-w-md"

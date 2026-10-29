@@ -64,8 +64,8 @@ export const SettingsView: React.FC = () => {
     },
     {
       id: 'branches',
-      label: 'Pharmacy Branches',
-      subtitle: 'Multi-store dispensaries, warehouse locations, and licenses',
+      label: 'Showrooms & Branches',
+      subtitle: 'Showrooms, godown yards, stock depots, and billing points',
       icon: Store,
       badgeCount: totalBranchesCount,
     },
@@ -97,9 +97,9 @@ export const SettingsView: React.FC = () => {
       {/* Page Header */}
       <PageHeader
         title="Platform Settings & Configuration"
-        subtitle="Manage your pharmacy organization, branch dispensaries, role-based access control, and regulatory compliance"
+        subtitle="Manage your showroom workspaces, godown branches, role-based staff access, and GST billing configurations"
         badge={
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E6F4F1] text-[#0D5C63] text-xs font-bold border border-[#0D5C63]/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0066FF] text-xs font-bold border border-blue-200">
             <ShieldCheck className="w-3.5 h-3.5" />
             Enterprise Control
           </span>
@@ -121,7 +121,7 @@ export const SettingsView: React.FC = () => {
       {/* KPI Overview Metrics Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          title="Pharmacy Entity"
+          title="Business Entity"
           value={organization?.name || 'Vetrify Enterprise'}
           subtitle={
             organization?.gstin

@@ -63,7 +63,7 @@ export const WholesaleOverview: React.FC<WholesaleOverviewProps> = ({
             </h1>
           </div>
           <p className="text-xs text-slate-400 pl-9">
-            Auditable bulk sales, credit control, quotation workflows, FEFO reservation, and delivery dispatch.
+            Auditable bulk sales, credit control, quotation workflows, lot/shade reservation, and delivery dispatch.
           </p>
         </div>
 
@@ -223,7 +223,7 @@ export const WholesaleOverview: React.FC<WholesaleOverviewProps> = ({
             <FileText className="w-10 h-10 text-slate-400 mx-auto mb-2" />
             <p className="text-sm font-semibold text-slate-700">No Wholesale Orders Yet</p>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
-              Start by creating your first wholesale order or quotation for a hospital, clinic, or pharmacy customer.
+              Start by creating your first wholesale order or quotation for a builder, architect, contractor, or dealer.
             </p>
             <button
               onClick={onOpenOrderWizard}

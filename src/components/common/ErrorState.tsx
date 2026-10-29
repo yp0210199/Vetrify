@@ -20,7 +20,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   const configs = {
     load_failed: {
       icon: AlertOctagon,
-      defaultTitle: 'Unable to load pharmacy data',
+      defaultTitle: 'Unable to load workspace data',
       defaultMsg: 'There was a temporary problem retrieving the records. Please try again.',
       color: 'text-[#EF4444] bg-[#FEE2E2]',
     },

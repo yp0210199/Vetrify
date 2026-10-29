@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
-import { Pill, Box, ShieldAlert } from 'lucide-react';
+import { Layers, Grid, Box, Sparkles } from 'lucide-react';
 
 interface ProductImageProps {
   src?: string;
   alt?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  dosageForm?: string;
-  schedule?: string;
+  dosageForm?: string; // Kept for interface backward compatibility, maps to Finish / Category
+  schedule?: string;   // Maps to Quality Grade (Premium / Standard)
   className?: string;
   isColdChain?: boolean;
 }
 
 export const ProductImage: React.FC<ProductImageProps> = ({
   src,
-  alt = 'Medicine',
+  alt = 'Tile Catalog Item',
   size = 'md',
-  dosageForm = 'Tablet',
+  dosageForm = 'Tile',
   schedule,
   className = '',
   isColdChain = false,
@@ -31,22 +31,24 @@ export const ProductImage: React.FC<ProductImageProps> = ({
     xl: 'w-32 h-32 rounded-2xl text-lg',
   };
 
-  const getDosageFormBackground = (form: string) => {
-    switch (form.toLowerCase()) {
-      case 'tablet':
-      case 'capsule':
-        return 'from-sky-50 to-blue-100 text-sky-700 border-sky-200';
-      case 'syrup':
-      case 'suspension':
-        return 'from-amber-50 to-orange-100 text-amber-700 border-amber-200';
-      case 'injection':
-        return 'from-emerald-50 to-teal-100 text-teal-700 border-teal-200';
-      case 'ointment':
-      case 'gel':
-        return 'from-purple-50 to-indigo-100 text-indigo-700 border-indigo-200';
-      default:
-        return 'from-slate-50 to-slate-100 text-slate-600 border-slate-200';
+  const getFinishBackground = (finish: string) => {
+    const f = (finish || '').toLowerCase();
+    if (f.includes('gloss') || f.includes('polish')) {
+      return 'from-teal-50 to-emerald-100 text-[#0D5C63] border-teal-200';
     }
+    if (f.includes('matt') || f.includes('satin')) {
+      return 'from-slate-50 to-slate-200 text-slate-700 border-slate-300';
+    }
+    if (f.includes('rustic') || f.includes('stone') || f.includes('carving')) {
+      return 'from-amber-50 to-orange-100 text-amber-800 border-amber-200';
+    }
+    if (f.includes('sanitary') || f.includes('basin') || f.includes('closet')) {
+      return 'from-sky-50 to-blue-100 text-sky-800 border-sky-200';
+    }
+    if (f.includes('faucet') || f.includes('fitting') || f.includes('chrome')) {
+      return 'from-cyan-50 to-teal-100 text-teal-800 border-teal-200';
+    }
+    return 'from-slate-50 to-slate-100 text-slate-600 border-slate-200';
   };
 
   return (
@@ -74,37 +76,29 @@ export const ProductImage: React.FC<ProductImageProps> = ({
           />
         </>
       ) : (
-        /* Professional Pharmaceutical Fallback Icon */
+        /* Tiles & Sanitaryware Architectural Visual Fallback */
         <div
-          className={`w-full h-full bg-gradient-to-br flex flex-col items-center justify-center p-1 border ${getDosageFormBackground(
+          className={`w-full h-full bg-gradient-to-br flex flex-col items-center justify-center p-1 border ${getFinishBackground(
             dosageForm
           )}`}
         >
-          <Pill className={size === 'xs' ? 'w-3.5 h-3.5' : size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} />
+          <Grid className={size === 'xs' ? 'w-3.5 h-3.5' : size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} />
           {size !== 'xs' && size !== 'sm' && (
             <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 truncate max-w-full px-1">
-              {dosageForm}
+              {dosageForm || 'Tile'}
             </span>
           )}
         </div>
       )}
 
-      {/* Schedule Warning Tag (e.g. Schedule H / H1) */}
+      {/* Grade Badge */}
       {schedule && schedule !== 'OTC' && (
         <span
-          className="absolute top-0.5 right-0.5 px-1 py-0.2 bg-red-600 text-white font-bold text-[8px] rounded uppercase shadow-xs tracking-tighter"
-          title={`Schedule ${schedule} Restricted Drug`}
+          className="absolute top-0.5 right-0.5 px-1 py-0.2 bg-[#0D5C63] text-white font-bold text-[8px] rounded uppercase shadow-xs tracking-tighter"
+          title={`Grade: ${schedule}`}
         >
           {schedule}
         </span>
-      )}
-
-      {/* Cold Chain Indicator (Ice Blue Dot) */}
-      {isColdChain && (
-        <span
-          className="absolute bottom-0.5 left-0.5 w-2 h-2 rounded-full bg-cyan-500 ring-1 ring-white shadow-xs"
-          title="2°C - 8°C Cold Chain Required"
-        />
       )}
     </div>
   );

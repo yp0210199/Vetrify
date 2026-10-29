@@ -44,9 +44,9 @@ export async function getTaxSlabs(
     return [
       { id: 'gst_0', organizationId, name: 'Exempt (0%)', gstRate: 0, cgstRate: 0, sgstRate: 0, igstRate: 0, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
       { id: 'gst_5', organizationId, name: 'GST 5%', gstRate: 5, cgstRate: 2.5, sgstRate: 2.5, igstRate: 5, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-      { id: 'gst_12', organizationId, name: 'GST 12% (Medicines)', gstRate: 12, cgstRate: 6, sgstRate: 6, igstRate: 12, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-      { id: 'gst_18', organizationId, name: 'GST 18% (FMCG/Cosmetics)', gstRate: 18, cgstRate: 9, sgstRate: 9, igstRate: 18, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-      { id: 'gst_28', organizationId, name: 'GST 28%', gstRate: 28, cgstRate: 14, sgstRate: 14, igstRate: 28, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
+      { id: 'gst_12', organizationId, name: 'GST 12% (Tile Adhesives & Grouts)', gstRate: 12, cgstRate: 6, sgstRate: 6, igstRate: 12, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
+      { id: 'gst_18', organizationId, name: 'GST 18% (Tiles, Sanitaryware & Faucets)', gstRate: 18, cgstRate: 9, sgstRate: 9, igstRate: 18, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
+      { id: 'gst_28', organizationId, name: 'GST 28% (Luxury Slabs & Fittings)', gstRate: 28, cgstRate: 14, sgstRate: 14, igstRate: 28, status: 'active', isSystem: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
     ];
   }
 

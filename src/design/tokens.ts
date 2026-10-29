@@ -1,14 +1,16 @@
 export const TOKENS = {
   colors: {
     brand: {
-      primary: '#0D5C63',     // Deep Teal
-      primaryHover: '#0A494F',
-      primaryLight: '#E6F4F1',
-      secondary: '#0B1F33',   // Dark Navy
+      primary: '#0066FF',     // Electric Blue
+      primaryHover: '#0052CC',
+      primaryLight: '#EFF6FF',
+      secondary: '#0B1F33',   // Deep Navy Blue
       secondaryLight: '#183654',
-      accent: '#2FA36A',      // Pharmacy Green
-      accentHover: '#268456',
-      accentLight: '#EAF7EE',
+      accent: '#00C9A7',      // Vibrant Teal
+      accentHover: '#00A88B',
+      accentLight: '#E6FAF6',
+      tealDark: '#0D5C63',    // Deep Teal
+      electricCyan: '#00E5FF',// Electric Cyan
     },
     surface: {
       page: '#F6F8FA',        // Cool Off-White background

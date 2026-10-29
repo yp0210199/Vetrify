@@ -67,7 +67,7 @@ export function mapAuthError(error: unknown): string {
     case 'auth/invalid-login-credentials':
       return 'Unable to sign you in. Please check your email and password and try again.';
     case 'auth/user-disabled':
-      return 'This staff account has been disabled. Please contact your pharmacy administrator.';
+      return 'This staff account has been disabled. Please contact your workspace administrator.';
     case 'auth/too-many-requests':
       return 'Access temporarily disabled due to multiple failed sign-in attempts. Please try again later or reset your password.';
     case 'auth/network-request-failed':

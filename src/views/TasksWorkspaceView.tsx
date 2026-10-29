@@ -375,7 +375,7 @@ export const TasksWorkspaceView: React.FC<TasksWorkspaceViewProps> = ({ onNaviga
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
             <CheckSquare className="w-12 h-12 mx-auto text-slate-300 stroke-1" />
             <p className="text-sm font-bold mt-3">All clear! No pending tasks matched</p>
-            <p className="text-xs mt-1">Spawning tasks is automated as you perform drug audits or file transactions.</p>
+            <p className="text-xs mt-1">Spawning tasks is automated as you perform lot audits, stock inwards, or file transactions.</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
@@ -524,7 +524,7 @@ export const TasksWorkspaceView: React.FC<TasksWorkspaceViewProps> = ({ onNaviga
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-[#0D5C63]"
                   >
                     <option value="staff">Staff</option>
-                    <option value="pharmacist">Pharmacist</option>
+                    <option value="sales_staff">Sales Staff</option>
                     <option value="manager">Manager</option>
                     <option value="owner">Owner</option>
                   </select>

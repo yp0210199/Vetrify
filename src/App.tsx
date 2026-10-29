@@ -113,7 +113,7 @@ function AuthenticatedAppShell() {
     email: user?.email || '',
     role: currentStaff?.roleId
       ? (currentStaff.roleId.charAt(0).toUpperCase() + currentStaff.roleId.slice(1)) as any
-      : 'Pharmacist',
+      : 'Showroom Manager' as any,
     storeName: activeStoreContext.name,
     avatarUrl: user?.photoURL || currentStaff?.photoURL || firestoreUser?.photoURL || undefined,
   };

@@ -372,16 +372,16 @@ export const POList: React.FC = () => {
           <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0] space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-[#0B1F33]">Add Line Items</h4>
-              <span className="text-[11px] text-slate-500 font-medium">Search & Select Medicine</span>
+              <span className="text-[11px] text-slate-500 font-medium">Search & Select Product</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
                 <SearchableSelect
-                  label="Select Medicine Product"
+                  label="Select Catalog Item"
                   required
-                  placeholder="-- Search & Select Medicine --"
-                  searchPlaceholder="Type medicine name, composition, brand, SKU, or salt..."
+                  placeholder="-- Search & Select Product --"
+                  searchPlaceholder="Type tile name, brand, finish, dimensions, SKU..."
                   value={selectedProductId}
                   onChange={(val, opt) => {
                     setSelectedProductId(val);
@@ -391,15 +391,14 @@ export const POList: React.FC = () => {
                     }
                   }}
                   options={products.map((p) => {
-                    const scheduleBadge = p.schedule ? `Sch ${p.schedule}` : (p.dosageForm || 'Medicine');
-                    const badgeColor = p.schedule === 'X' || p.schedule === 'H1' ? 'red' : p.schedule === 'H' ? 'amber' : 'blue';
+                    const gradeBadge = p.tileGrade || p.grade || (p.surfaceFinish ? `${p.surfaceFinish}` : 'Tile/Material');
                     return {
                       value: p.id,
-                      label: `${p.productName} ${p.strength ? `(${p.strength})` : ''}`,
-                      subLabel: `${p.manufacturerName || p.brand || 'Pharma'} • ${p.composition || 'Standard formulation'}`,
+                      label: `${p.productName} ${p.tileDimensions ? `(${p.tileDimensions})` : ''}`,
+                      subLabel: `${p.manufacturerName || p.brand || 'Vetrify'} • ${p.categoryType ? p.categoryType.toUpperCase() : 'Building Material'}`,
                       sku: p.sku,
-                      badge: scheduleBadge,
-                      badgeColor: badgeColor as any,
+                      badge: gradeBadge,
+                      badgeColor: 'teal' as any,
                       keywords: [
                         p.productName || '',
                         p.brand || '',

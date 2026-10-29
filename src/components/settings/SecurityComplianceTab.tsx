@@ -101,8 +101,8 @@ export const SecurityComplianceTab: React.FC = () => {
       desc: 'Staff invitations, role promotions, suspensions, and access modifications.',
     },
     compliance: {
-      title: 'Statutory Compliance & Schedule H',
-      desc: 'Schedule H/H1/X compliance register events and drug inspection audit logs.',
+      title: 'Statutory GST & Material Compliance',
+      desc: 'GST compliance register events, HSN summaries, and material inspection audit logs.',
     },
     pos: {
       title: 'POS Billing & Retail Shifts',

@@ -136,12 +136,12 @@ export const WholesaleQuotations: React.FC<WholesaleQuotationsProps> = ({
 
     return {
       productId: i.productId,
-      productName: prod?.productName || 'Medicine',
+      productName: prod?.productName || 'Material / Item',
       brand: prod?.brand || 'Brand',
       strength: prod?.strength,
       dosageForm: prod?.dosageForm,
       sku: prod?.sku || 'SKU-001',
-      hsnCode: prod?.hsnCode || '3004',
+      hsnCode: prod?.hsnCode || '6907',
       requestedQty: i.requestedQty,
       unitPrice: i.unitPrice,
       wholesalePrice: i.wholesalePrice,
@@ -372,9 +372,9 @@ export const WholesaleQuotations: React.FC<WholesaleQuotationsProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                   <div className="sm:col-span-2">
                     <SearchableSelect
-                      label="Select Medicine / Product"
+                      label="Select Tile / Sanitary Product"
                       placeholder="-- Search & Choose Product --"
-                      searchPlaceholder="Search product by name, brand, salt, composition..."
+                      searchPlaceholder="Search product by name, brand, finish, dimensions, SKU..."
                       value={selectedProdId}
                       onChange={(val) => handleSelectProductAdd(val)}
                       options={safeProducts.map((p) => {
@@ -382,7 +382,7 @@ export const WholesaleQuotations: React.FC<WholesaleQuotationsProps> = ({
                         return {
                           value: p.id,
                           label: p.productName,
-                          subLabel: `${p.brand || 'Pharma'} • Avail Stock: ${p.totalAvailableQuantity || 0} units`,
+                          subLabel: `${p.brand || 'Vetrify'} • Avail Stock: ${p.totalAvailableQuantity || 0} units`,
                           sku: p.sku,
                           badge: `Stock: ${p.totalAvailableQuantity || 0}`,
                           badgeColor: isLow ? 'amber' : 'emerald',

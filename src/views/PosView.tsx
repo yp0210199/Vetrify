@@ -31,7 +31,7 @@ import {
   PosProductItem,
   SaleInvoice,
   PaymentMode,
-  PharmacyBatch,
+  TileLotBatch,
   Customer,
   ArchitectPartner,
 } from '../types';
@@ -148,7 +148,7 @@ export const PosView: React.FC = () => {
     selectedBatchId: string;
     cartItemId: string;
   } | null>(null);
-  const [productBatches, setProductBatches] = useState<PharmacyBatch[]>([]);
+  const [productBatches, setProductBatches] = useState<TileLotBatch[]>([]);
   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
 
   // Invoices & Printing
@@ -367,7 +367,7 @@ export const PosView: React.FC = () => {
     }
   };
 
-  const handleSelectAlternativeBatch = (newBatch: PharmacyBatch) => {
+  const handleSelectAlternativeBatch = (newBatch: TileLotBatch) => {
     if (!activeBatchProduct) return;
     setCartItems(
       cartItems.map((item) => {
@@ -693,6 +693,14 @@ export const PosView: React.FC = () => {
       }
 
       setCompletedInvoice(invoice);
+      setRecentInvoices((prev) => [invoice, ...prev.filter((i) => i.id !== invoice.id)]);
+      try {
+        const stored = JSON.parse(localStorage.getItem(`vetrify_recent_invoices_${organization.id}`) || '[]');
+        localStorage.setItem(
+          `vetrify_recent_invoices_${organization.id}`,
+          JSON.stringify([invoice, ...stored.filter((i: any) => i.id !== invoice.id)].slice(0, 50))
+        );
+      } catch {}
       setIsQuotationPrint(false);
       setIsPrintModalOpen(true);
       setCartItems([]);
@@ -749,14 +757,24 @@ export const PosView: React.FC = () => {
 
   // 8. Fetch Recent Invoices
   const handleOpenRecentInvoices = async () => {
-    if (!organization?.id || !currentStore?.id) return;
+    if (!organization?.id) return;
     setIsRecentInvoicesDrawerOpen(true);
     setIsLoadingRecentInvoices(true);
     try {
-      const invs = await posService.getRecentInvoices(organization.id, currentStore.id, 25);
+      let invs = await posService.getRecentInvoices(organization.id, currentStore?.id, 30);
+      if (invs.length === 0) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(`vetrify_recent_invoices_${organization.id}`) || '[]');
+          if (cached && cached.length > 0) invs = cached;
+        } catch {}
+      }
       setRecentInvoices(invs);
     } catch (err) {
       console.error('Error fetching recent invoices:', err);
+      try {
+        const cached = JSON.parse(localStorage.getItem(`vetrify_recent_invoices_${organization.id}`) || '[]');
+        if (cached && cached.length > 0) setRecentInvoices(cached);
+      } catch {}
     } finally {
       setIsLoadingRecentInvoices(false);
     }

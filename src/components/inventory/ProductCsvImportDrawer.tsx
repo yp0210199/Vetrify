@@ -60,7 +60,7 @@ export const ProductCsvImportDrawer: React.FC<ProductCsvImportDrawerProps> = ({
         validItems
       );
 
-      success(`Successfully created ${count} medicine product master records in Firestore.`, 'Import Successful');
+      success(`Successfully created ${count} catalog product records in system.`, 'Import Successful');
 
       onSuccess();
       handleReset();
@@ -79,16 +79,16 @@ export const ProductCsvImportDrawer: React.FC<ProductCsvImportDrawerProps> = ({
   };
 
   const downloadSampleTemplate = () => {
-    const sampleCsv = `Product Name,Brand,Composition,Dosage Form,Strength,Manufacturer,Category,HSN Code,GST Rate,MRP,Purchase Cost,Sale Rate,Pack Unit,Base Unit,Conversion Factor,Schedule,Rack Location
-Paracetamol 500mg,Crocin 500,Paracetamol IP,Tablet,500mg,GSK Pharma,Medicines & Pharmaceuticals,30049019,12,18.00,11.20,16.50,Strip,Tablet,15,OTC,A-01-01
-Pantoprazole 40mg,Pan-40,Pantoprazole Sodium,Tablet,40mg,Alkem Labs,Medicines & Pharmaceuticals,30049019,12,32.00,19.50,28.80,Strip,Tablet,15,H,A-01-04
-Amoxicillin 625mg,Augmentin 625,Amoxicillin + Clavulanic Acid,Tablet,625mg,GSK India,Antibiotics & Anti-infectives,30041010,12,201.50,142.00,185.00,Strip,Tablet,10,H1,B-02-01`;
+    const sampleCsv = `Product Name,Brand,Finish / Type,Dimensions,Thickness,Manufacturer,Category,HSN Code,GST Rate,MRP,Purchase Cost,Sale Rate,Pack Unit,Base Unit,Conversion Factor,Grade / Standard,Rack Location
+Statuario White Glazed Vitrified Tile 600x1200mm,Kajaria,Glossy Polished,600x1200mm,9mm,Kajaria Ceramics,Tiles & Slabs,69072100,18,1250.00,850.00,1050.00,Box,Sq.Ft,15.5,Premium Grade A,Bay-01-A
+One Piece Rimless Ceramic Water Closet,Jaquar,Alpine White Ceramic,Wall Hung,Standard,Jaquar & Company,Sanitaryware,69101000,18,9800.00,6200.00,8400.00,Piece,Piece,1,Grade A,Bay-03-B
+Polymer Modified Heavy Duty Tile Adhesive 20kg,Roff (Pidilite),Grey Powder C2TE,20kg Bag,N/A,Pidilite Industries,Tile Adhesive & Grouts,32149090,12,650.00,420.00,540.00,Bag,Kg,20,ISI Certified,Shed-02-C`;
 
     const blob = new Blob([sampleCsv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'rx_omni_product_import_sample.csv';
+    a.download = 'vetrify_product_import_sample.csv';
     a.click();
     URL.revokeObjectURL(url);
   };

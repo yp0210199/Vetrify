@@ -54,7 +54,7 @@ export const staffInvitationService = {
         throw new Error('Unauthorized: Administrators cannot invite Owners or other Administrators.');
       }
     } else if (callerStaff.roleId !== 'owner') {
-      throw new Error('Unauthorized: Only Pharmacy Owners and Administrators can invite staff.');
+      throw new Error('Unauthorized: Only Business Owners and Administrators can invite staff.');
     }
 
     const cleanEmail = params.email.trim().toLowerCase();
@@ -67,7 +67,7 @@ export const staffInvitationService = {
     }
 
     if (!params.allStoresAccess && (!params.storeIds || params.storeIds.length === 0)) {
-      throw new Error('Please select at least one permitted pharmacy store branch.');
+      throw new Error('Please select at least one permitted showroom or godown branch.');
     }
 
     const db = getFirestoreDb();
@@ -481,7 +481,7 @@ export const staffInvitationService = {
     const inv = inviteSnap.data();
 
     if (inv.status === 'revoked') {
-      throw new Error('This invitation has been revoked by pharmacy administration.');
+      throw new Error('This invitation has been revoked by workspace administration.');
     }
 
     if (inv.status === 'accepted') {
@@ -489,7 +489,7 @@ export const staffInvitationService = {
     }
 
     if (inv.expiresAt && inv.expiresAt.toMillis() < Date.now()) {
-      throw new Error('This invitation has expired. Please ask your pharmacy manager to resend an invite.');
+      throw new Error('This invitation has expired. Please ask your workspace manager to resend an invite.');
     }
 
     // Verify email binding

@@ -147,7 +147,7 @@ export const WarehouseControlCenterView: React.FC = () => {
         <KpiCard
           title="Compliance & Licensing"
           value={warehouses.filter((w) => w.gstin && w.drugLicense).length}
-          subtitle="Full GSTIN & Form 20B/21B"
+          subtitle="Full GSTIN & Yard Reg."
           icon={<ShieldCheck className="w-5 h-5 text-emerald-600" />}
           bgColor="bg-emerald-50"
         />
@@ -297,7 +297,7 @@ export const WarehouseControlCenterView: React.FC = () => {
                           <span className="text-slate-400">No GSTIN</span>
                         )}
                         {wh.drugLicense && (
-                          <p className="font-mono text-slate-600">DL: {wh.drugLicense}</p>
+                          <p className="font-mono text-slate-600">Yard Reg: {wh.drugLicense}</p>
                         )}
                       </div>
                     </td>

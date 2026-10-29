@@ -200,7 +200,7 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
     }
 
     if (items.length === 0) {
-      error('Please add at least one medicine item to transfer.', 'Empty Items');
+      error('Please add at least one material/tile item to transfer.', 'Empty Items');
       return;
     }
 
@@ -302,7 +302,7 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
             >
               <option value="ROUTINE">Routine Rebalancing</option>
               <option value="URGENT">Urgent Stock Deficit</option>
-              <option value="EMERGENCY">Emergency Patient Need</option>
+              <option value="EMERGENCY">Urgent Site / Builder Delivery</option>
             </Select>
           </div>
 
@@ -310,7 +310,7 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
             <label className="text-xs font-bold text-[#475569]">Rebalancing Reason / Remarks</label>
             <Input
               type="text"
-              placeholder="e.g. Branch stock-out, Near-expiry redistribution, Emergency prescription fulfillment..."
+              placeholder="e.g. Showroom display shortage, Jobsite slab requirement, Inter-godown balance transfer..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
@@ -320,11 +320,11 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
         {/* Product Search & Selection Bar */}
         <div className="space-y-2 relative">
           <label className="text-xs font-bold text-[#475569] flex items-center gap-1.5">
-            <Package className="w-3.5 h-3.5 text-[#0D5C63]" />
-            Search & Add Medicine Items to Transfer
+            <Package className="w-3.5 h-3.5 text-[#0066FF]" />
+            Search & Add Tile / Material Items to Transfer
           </label>
           <SearchInput
-            placeholder="Search catalog by medicine name, salt composition, or SKU..."
+            placeholder="Search catalog by tile name, dimensions, finish, or SKU..."
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
           />
@@ -358,7 +358,7 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] font-bold">
-                <th className="py-2.5 px-3">Medicine Master</th>
+                <th className="py-2.5 px-3">Catalog Item / Material</th>
                 <th className="py-2.5 px-3 text-center">Avail at Source</th>
                 <th className="py-2.5 px-3 text-center min-w-[120px]">Requested Qty</th>
                 <th className="py-2.5 px-3 text-right">Unit Cost</th>

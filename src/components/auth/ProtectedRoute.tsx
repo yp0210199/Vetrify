@@ -16,7 +16,7 @@ const WorkspaceGate: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { workspaceState, hasWorkspace } = useWorkspace();
 
   if (workspaceState === 'checking') {
-    return <AuthLoadingScreen message="Resolving pharmacy workspace permissions..." />;
+    return <AuthLoadingScreen message="Resolving workspace permissions..." />;
   }
 
   // Handle invitation query parameters
@@ -50,7 +50,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { status, isAuthenticated } = useAuth();
 
   if (status === 'loading') {
-    return <AuthLoadingScreen message="Initializing secure pharmacy session..." />;
+    return <AuthLoadingScreen message="Initializing secure workspace session..." />;
   }
 
   if (!isAuthenticated || status === 'unauthenticated') {

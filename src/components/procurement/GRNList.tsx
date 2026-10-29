@@ -201,15 +201,15 @@ export const GRNList: React.FC = () => {
       return;
     }
 
-    // Validate batch numbers and expiries
+    // Validate lot numbers and inward quantities
     for (const item of grnItems) {
       if (!item.batchNumber.trim()) {
-        addToast(`Batch number is required for ${item.productName}`, 'error');
+        addToast(`Lot / Shade number is required for ${item.productName}`, 'error');
         return;
       }
       if (!item.expiryDate) {
-        addToast(`Expiry date is required for ${item.productName}`, 'error');
-        return;
+        // Tile and ceramic products do not expire; set default far future timestamp
+        item.expiryDate = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       }
       if (item.receivedQuantity <= 0) {
         addToast(`Received quantity must be positive for ${item.productName}`, 'error');
@@ -223,7 +223,7 @@ export const GRNList: React.FC = () => {
     const caller = {
       uid: user?.uid || 'system',
       email: user?.email || 'system@vetrify.internal',
-      displayName: user?.displayName || 'Pharmacy Staff',
+      displayName: user?.displayName || 'Godown / Receiving Staff',
     };
 
     setSubmittingGRN(true);
@@ -259,7 +259,7 @@ export const GRNList: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-[#0B1F33]">Goods Receipt Note (GRN) & Inwarding</h2>
-            <p className="text-xs text-[#64748B]">Atomic batch creation, supplier ledger posting, and FEFO stock ingestion</p>
+            <p className="text-xs text-[#64748B]">Atomic lot & shade creation, supplier ledger posting, and godown stock ingestion</p>
           </div>
         </div>
 
@@ -346,7 +346,7 @@ export const GRNList: React.FC = () => {
         isOpen={isInwardModalOpen}
         onClose={() => setIsInwardModalOpen(false)}
         title="Stock Inwarding & GRN Generation"
-        subtitle="Inward physical batches into store inventory with atomic FEFO batch tracking"
+        subtitle="Inward physical tile lots and sanitaryware stock into godown inventory with shade & tone tracking"
         size="xl"
       >
         <form onSubmit={handleCompleteInward} className="space-y-4">
@@ -405,14 +405,14 @@ export const GRNList: React.FC = () => {
           {/* Batch Entry Inward Table */}
           {grnItems.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-[#0B1F33]">Batch Details & Inward Quantities</h4>
+              <h4 className="text-xs font-bold text-[#0B1F33]">Lot & Shade Details & Inward Quantities</h4>
               <div className="border border-[#E2E8F0] rounded-xl overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs min-w-[950px]">
                   <thead>
                     <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[10px] font-bold text-[#64748B] uppercase">
                       <th className="p-2.5 w-1/4 min-w-[180px]">Product</th>
-                      <th className="p-2.5 w-44 min-w-[150px]">Batch #</th>
-                      <th className="p-2.5 w-40 min-w-[140px]">Expiry Date</th>
+                      <th className="p-2.5 w-44 min-w-[150px]">Lot / Shade #</th>
+                      <th className="p-2.5 w-40 min-w-[140px]">Production Date</th>
                       <th className="p-2.5 w-24 text-right">Recv Qty</th>
                       <th className="p-2.5 w-28 text-right">Cost (₹)</th>
                       <th className="p-2.5 w-28 text-right">MRP (₹)</th>
@@ -521,8 +521,8 @@ export const GRNList: React.FC = () => {
                 <thead>
                   <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[10px] font-bold text-[#64748B] uppercase">
                     <th className="p-2.5">Product</th>
-                    <th className="p-2.5">Batch</th>
-                    <th className="p-2.5">Expiry</th>
+                    <th className="p-2.5">Lot / Shade</th>
+                    <th className="p-2.5">Mfg Date</th>
                     <th className="p-2.5 text-right">Inward Qty</th>
                     <th className="p-2.5 text-right">Cost</th>
                     <th className="p-2.5 text-right">Total</th>

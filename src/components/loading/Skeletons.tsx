@@ -20,7 +20,7 @@ export const InlineLoader: React.FC<{ message?: string; size?: 'sm' | 'md' | 'lg
 };
 
 export const FullPageLoader: React.FC<{ message?: string }> = ({
-  message = 'Loading pharmacy workspace...',
+  message = 'Loading workspace...',
 }) => {
   return (
     <div className="min-h-screen w-screen bg-[#0B1F33] flex flex-col items-center justify-center p-6 text-white antialiased z-50">

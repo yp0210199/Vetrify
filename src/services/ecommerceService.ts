@@ -143,6 +143,10 @@ export const ecommerceService = {
     }
   },
 
+  async getCustomerOrders(orgId: string, customerId: string): Promise<OnlineOrder[]> {
+    return this.getOnlineOrders(orgId, undefined, customerId);
+  },
+
   async getOnlineOrderById(orgId: string, orderId: string): Promise<OnlineOrder | null> {
     const path = `organizations/${orgId}/onlineOrders/${orderId}`;
     try {

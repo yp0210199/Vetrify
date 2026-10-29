@@ -52,7 +52,7 @@ export const CustomerPaymentReceiptModal: React.FC<CustomerPaymentReceiptModalPr
           {/* Header */}
           <div className="text-center pb-4 border-b border-slate-200 dark:border-slate-800">
             <h2 className="text-lg font-black tracking-tight">{organization?.name || 'Vetrify Store'}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{currentStore?.name || 'Main Pharmacy Branch'}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{currentStore?.name || 'Main Showroom'}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">{currentStore?.address?.street || ''} {currentStore?.address?.city || ''}</p>
             {currentStore?.phone && <p className="text-2xs text-slate-400">Phone: {currentStore.phone}</p>}
             

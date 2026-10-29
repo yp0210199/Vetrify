@@ -37,8 +37,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
 
   // Operations Queue task checkbox states
   const [tasks, setTasks] = useState([
-    { id: 'task-1', title: 'Reorder fast-moving low stock medicines', checked: false, isUrgent: true },
-    { id: 'task-2', title: 'Inspect near expiry batches in rack quarantines', checked: false, isUrgent: true },
+    { id: 'task-1', title: 'Reorder fast-moving tiles & building materials', checked: false, isUrgent: true },
+    { id: 'task-2', title: 'Inspect quarantined / damaged lots in warehouse yard', checked: false, isUrgent: true },
     { id: 'task-3', title: 'Verify pending goods receipt notes (GRNs)', checked: false, isUrgent: false },
     { id: 'task-4', title: 'Review today\'s POS cash and credit closure logs', checked: false, isUrgent: false },
   ]);
@@ -79,16 +79,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
         { 
           id: 'task-1', 
           title: metrics.lowStockCount > 0 
-            ? `Reorder low stock medicines (${metrics.lowStockCount} items left)` 
-            : 'Reorder fast-moving low stock medicines', 
+            ? `Reorder low stock catalog items (${metrics.lowStockCount} items left)` 
+            : 'Reorder fast-moving tiles & building materials', 
           checked: false, 
           isUrgent: metrics.lowStockCount > 0 
         },
         { 
           id: 'task-2', 
           title: metrics.nearExpiryCount > 0 
-            ? `Review near expiry batches (${metrics.nearExpiryCount} batches expiring soon)` 
-            : 'Inspect near expiry batches in rack quarantines', 
+            ? `Review slow-moving & aging stock lots (${metrics.nearExpiryCount} lots pending review)` 
+            : 'Inspect quarantined / damaged lots in warehouse yard', 
           checked: false, 
           isUrgent: metrics.nearExpiryCount > 0 
         },
@@ -130,7 +130,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Pharmacy Operations Dashboard"
+          title="Operations & Sales Dashboard"
           subtitle="Real-time multi-channel sales, inventory health, and operational alerts"
         />
         <DashboardSkeleton />
@@ -145,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Pharmacy Operations Dashboard"
+          title="Operations & Sales Dashboard"
           subtitle="Real-time multi-channel sales, inventory health, and operational alerts"
           secondaryActions={
             <Button variant="secondary" size="sm" onClick={handleRefresh} icon={RefreshCw}>
@@ -159,13 +159,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
           <KpiCard title="Bills Created" value="—" isEmpty emptyMessage="Counter ready" />
           <KpiCard title="Cash in Drawer" value="—" isEmpty emptyMessage="Shift not opened" />
           <KpiCard title="Low Stock Items" value="—" isEmpty emptyMessage="Inventory normal" />
-          <KpiCard title="Near Expiry (<60D)" value="—" isEmpty emptyMessage="0 expiring items" />
+          <KpiCard title="Breakage / Scrap (<60D)" value="—" isEmpty emptyMessage="0 damaged items" />
         </div>
         <EmptyState
           type="sales"
           title="No transactions recorded"
-          description="Open the Retail POS to start scanning medicines and recording sales, or import opening stock."
-          primaryActionLabel="Open Retail POS"
+          description="Open the Showroom POS to start billing tiles, sanitaryware, and construction materials, or inward opening stock."
+          primaryActionLabel="Open Showroom POS"
           onPrimaryAction={() => onNavigate('pos')}
         />
       </div>
@@ -185,7 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Pharmacy Operations Dashboard"
+        title="Operations & Sales Dashboard"
         subtitle="Real-time multi-channel sales, inventory health, and daily alerts"
         badge={
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] text-xs font-bold border border-[#86EFAC]/50">
@@ -301,7 +301,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-amber-900">{activeData.lowStockCount} Low Stock Medicines</span>
+              <span className="text-xs font-bold text-amber-900">{activeData.lowStockCount} Low Stock Items</span>
               <p className="text-[11px] text-amber-700">Reorder threshold reached for fast-moving items</p>
             </div>
           </div>
@@ -458,7 +458,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
             </div>
           </div>
 
-          {/* Quick Pharmacy Tasks Card */}
+          {/* Quick Showroom & Warehouse Operations Queue */}
           <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <h3 className="text-sm font-bold text-[#0B1F33]">Today&apos;s Operations Queue</h3>
@@ -486,13 +486,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
         </div>
       </div>
 
-      {/* Top Selling Medicines & Recent Purchases Row */}
+      {/* Top Selling Products & Recent Purchases Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Top Selling Medicines (6 Cols) */}
+        {/* Top Selling Products (6 Cols) */}
         <div className="lg:col-span-6 bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs">
           <div className="flex items-center justify-between pb-3.5 border-b border-[#F1F5F9]">
             <div>
-              <h3 className="text-sm font-bold text-[#0B1F33]">Top Selling Medicines Today</h3>
+              <h3 className="text-sm font-bold text-[#0B1F33]">Top Selling Tiles & Materials Today</h3>
               <p className="text-xs text-[#64748B]">Fastest moving items by units and margin</p>
             </div>
             <button
@@ -537,9 +537,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onOpen
           <div className="flex items-center justify-between pb-3.5 border-b border-[#F1F5F9]">
             <div>
               <h3 className="text-sm font-bold text-[#0B1F33]">Recent Purchase Deliveries</h3>
-              <p className="text-xs text-[#64748B]">Inwards batch stock ledger from distributors</p>
+              <p className="text-xs text-[#64748B]">Inward lot & shade ledger from tile manufacturers</p>
             </div>
-            <span className="text-xs font-bold text-[#0D5C63]">FEFO Compliant</span>
+            <span className="text-xs font-bold text-[#0D5C63]">Lot & Shade Matched</span>
           </div>
 
           <div className="divide-y divide-[#F1F5F9] mt-2">

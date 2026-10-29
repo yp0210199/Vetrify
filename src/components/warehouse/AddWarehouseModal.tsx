@@ -208,7 +208,7 @@ export const AddWarehouseModal: React.FC<AddWarehouseModalProps> = ({
               </label>
               <input
                 type="email"
-                placeholder="warehouse@pharmacy.com"
+                placeholder="yard@vetrify.internal"
                 value={formData.contactEmail}
                 onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0D5C63]/30"
@@ -231,14 +231,14 @@ export const AddWarehouseModal: React.FC<AddWarehouseModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Drug License No.
+                Trade / Yard Reg. No.
               </label>
               <input
                 type="text"
-                placeholder="DL-20B/21B-XXXX"
+                placeholder="YARD-REG-2024"
                 value={formData.drugLicense}
                 onChange={(e) => setFormData({ ...formData, drugLicense: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0D5C63]/30 uppercase"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0066FF]/30 uppercase"
               />
             </div>
             <div>

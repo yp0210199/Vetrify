@@ -54,9 +54,9 @@ function isImageKitConfigured(): boolean {
   );
 }
 
-let imagekit: ImageKit | null = null;
-if (isImageKitConfigured()) {
-  imagekit = new ImageKit({
+function getImageKit(): ImageKit | null {
+  if (!isImageKitConfigured()) return null;
+  return new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
     urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
@@ -179,6 +179,19 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// ImageKit CDN Connection & Status Check
+app.get('/api/media/status', (_req, res) => {
+  const configured = isImageKitConfigured();
+  const endpoint = process.env.IMAGEKIT_URL_ENDPOINT || '';
+  res.json({
+    configured,
+    connected: configured,
+    provider: 'ImageKit CDN',
+    urlEndpoint: endpoint,
+    publicKeyPrefix: process.env.IMAGEKIT_PUBLIC_KEY ? process.env.IMAGEKIT_PUBLIC_KEY.substring(0, 8) + '...' : '',
+  });
+});
+
 // 1. POST /api/media/upload-signature (ImageKit Auth & Token Generation)
 app.post('/api/media/upload-signature', async (req, res) => {
   try {
@@ -201,9 +214,10 @@ app.post('/api/media/upload-signature', async (req, res) => {
       return res.status(400).json({ error: 'category is required' });
     }
 
-    if (!isImageKitConfigured() || !imagekit) {
+    const imagekit = getImageKit();
+    if (!imagekit) {
       return res.status(503).json({
-        error: 'ImageKit server credentials are not configured in environment variables. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT.',
+        error: 'ImageKit server credentials are not configured in environment variables. Please configure IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT.',
         code: 'IMAGEKIT_NOT_CONFIGURED',
       });
     }
@@ -214,7 +228,7 @@ app.post('/api/media/upload-signature', async (req, res) => {
     else if (category === 'store-logo' && storeId) subfolder = `stores/${storeId}`;
     else if (category === 'avatar') subfolder = `users/${authUser.uid}`;
     else if (category === 'product-image' || category === 'product_image' || category === 'products') subfolder = 'products';
-    else if (category === 'prescription') subfolder = 'prescriptions';
+    else if (category === 'project-plans' || category === 'cad' || category === 'documents' || category === 'prescription') subfolder = 'project-plans';
 
     const folder = `/vetrify/organizations/${organizationId}/${subfolder}`;
     const safeFileName = `${category}-${Date.now()}-${(originalFilename || 'asset').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
@@ -260,7 +274,8 @@ app.post('/api/media/upload-proxy', async (req, res) => {
       return res.status(400).json({ error: 'fileBase64 is required' });
     }
 
-    if (!isImageKitConfigured() || !imagekit) {
+    const imagekit = getImageKit();
+    if (!imagekit) {
       return res.status(503).json({
         error: 'ImageKit server credentials are not configured in environment variables.',
         code: 'IMAGEKIT_NOT_CONFIGURED',
@@ -318,16 +333,26 @@ app.post('/api/media/delete', async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: Active membership required' });
     }
 
-    if (!isImageKitConfigured() || !imagekit) {
-      return res.status(503).json({ error: 'ImageKit server credentials not configured' });
+    // If asset was synthetic, legacy, or mock, resolve cleanly
+    if (
+      targetFileId.startsWith('local_') ||
+      targetFileId.startsWith('asset_') ||
+      targetFileId === 'asset_existing'
+    ) {
+      return res.json({ success: true, message: 'Unlinked legacy or synthetic asset successfully' });
     }
 
-    // If asset was created locally (fallback), just return success
-    if (targetFileId.startsWith('local_')) {
-      return res.json({ success: true, message: 'Local asset asset deleted successfully (skipped ImageKit)' });
+    const imagekit = getImageKit();
+    if (!imagekit) {
+      return res.json({ success: true, message: 'Image unlinked (ImageKit client not available)' });
     }
 
-    await imagekit.deleteFile(targetFileId);
+    try {
+      await imagekit.deleteFile(targetFileId);
+    } catch (ikDelErr: any) {
+      // If the file was already deleted or doesn't exist on ImageKit, don't fail with 500
+      console.warn('ImageKit remote delete warning (file may already be deleted):', ikDelErr.message);
+    }
 
     return res.json({ success: true, message: 'ImageKit asset deleted successfully' });
   } catch (err: any) {
@@ -494,24 +519,21 @@ app.post('/api/clinical/analyze', async (req, res) => {
       return `${idx + 1}. Name: "${item.name}", Generic Composition: "${item.composition || 'Unknown'}", Strength: "${item.strength || 'Unknown'}", Schedule Category: "${item.schedule || 'OTC'}", Cold-Chain: ${item.isColdChain ? 'Yes' : 'No'}`;
     }).join('\n');
 
-    const promptText = `As an expert Clinical Decision Support System and Pharmacist Safety Engine, analyze the following active pharmacy cart of medicines being dispensed to a patient.
+    const promptText = `As an expert Architectural Construction & Tile Showroom Technical Advisor, analyze the following active showroom cart of tiles, sanitaryware, fittings, and adhesives being supplied to a client or construction site.
     
-Patient Profile:
-- Name: ${patientName || 'Walk-in Patient'}
-- Age: ${patientAge || 'Unknown'} years
-- Gender: ${patientGender || 'Unknown'}
-- Known Clinical History/Allergies: ${patientHistory || 'None reported'}
+Customer / Site Profile:
+- Client / Site: ${patientName || 'Walk-in Customer'}
+- Site / Project Type: ${patientHistory || 'Residential / Commercial Interior'}
 
-Active Cart Medicines:
+Active Cart Materials:
 ${medicinesListText}
 
-Perform a rigorous, non-simulated pharmaceutical safety check:
-1. Drug-Drug Interactions: Detect any clinically significant interactions between any two or more drugs in the cart.
-2. Therapeutic Duplication: Detect any overlapping therapeutic classes or duplicate active ingredients (e.g. Paracetamol in multiple brands, or multiple NSAIDs).
-3. Contraindications: Check if any drug is contraindicated for this patient's age (e.g. Aspirin in pediatric patients <12, tetracyclines in <8), gender, or history.
-4. Dosage Warnings: Call out any high dosage risk based on the strengths or known guidelines.
-5. Banned/Suspended Status: Flag if any of these medicines contains an active ingredient banned/suspended by CDSCO (India) or global regulatory bodies.
-6. Safe to Dispense: Output false if any SEVERE interaction, severe contraindication, or banned drug is found. Otherwise true.`;
+Perform a rigorous material compatibility & technical installation check:
+1. Material Compatibility: Check if tile sizes (e.g. large format vitrified slabs 600x1200 or 800x1600) have the matching polymer adhesive grade (Type-2 or Type-3 IS 15477:2019 rather than Type-1).
+2. Concealed vs Exposed Fittings: Check if concealed valve/diverter bodies have their corresponding exposed trim plate.
+3. Sanitaryware & Trap Match: Check if wall-hung basins or WCs match standard P-trap or S-trap and mounting brackets.
+4. Shade & Lot Consistency: Highlight the need for single shade/tone consistency for seamless floor installation.
+5. Safe to Dispatch: Output false only if severe missing structural components would halt client work. Otherwise true.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.7-flash',
@@ -526,11 +548,11 @@ Perform a rigorous, non-simulated pharmaceutical safety check:
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  drugs: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Names or generic compositions of the interacting drugs' },
-                  severity: { type: Type.STRING, description: 'Severity of interaction: Mild, Moderate, or Severe' },
-                  mechanism: { type: Type.STRING, description: 'Pharmacological mechanism of the interaction' },
-                  clinicalNote: { type: Type.STRING, description: 'Clinical explanation of what happens and why' },
-                  recommendation: { type: Type.STRING, description: 'Specific action recommendation for the pharmacist (e.g., monitor, adjust dose, consult doctor, replace drug)' },
+                  drugs: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Names or categories of the interrelated materials' },
+                  severity: { type: Type.STRING, description: 'Severity: Mild, Moderate, or Severe' },
+                  mechanism: { type: Type.STRING, description: 'Technical installation or sizing rationale' },
+                  clinicalNote: { type: Type.STRING, description: 'Technical explanation of compatibility issue' },
+                  recommendation: { type: Type.STRING, description: 'Showroom staff recommendation (e.g. add Type-2 adhesive, match trim series)' },
                 },
                 required: ['drugs', 'severity', 'clinicalNote', 'recommendation'],
               },

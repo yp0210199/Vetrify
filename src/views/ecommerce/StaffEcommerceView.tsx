@@ -20,7 +20,7 @@ export const StaffEcommerceView: React.FC = () => {
   const storeId = currentStore?.id || organization?.id || '';
   const staff = { 
     uid: firestoreUser?.uid || 'staff-admin', 
-    name: firestoreUser?.displayName || currentStaff?.displayName || 'Staff Pharmacist' 
+    name: firestoreUser?.displayName || currentStaff?.displayName || 'Showroom Sales Staff' 
   };
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export const StaffEcommerceView: React.FC = () => {
   };
 
   const filteredOrders = orders.filter(o => {
-    if (activeTab === 'pending_review') return ['pending_review', 'pharmacist_review'].includes(o.orderStatus);
+    if (activeTab === 'pending_review') return ['pending_review', 'staff_review', 'pharmacist_review'].includes(o.orderStatus);
     if (activeTab === 'picking') return ['confirmed', 'stock_reserved', 'picking'].includes(o.orderStatus);
     if (activeTab === 'ready_dispatch') return ['packed', 'ready_for_dispatch'].includes(o.orderStatus);
     if (activeTab === 'out_for_delivery') return o.orderStatus === 'out_for_delivery';
@@ -105,7 +105,7 @@ export const StaffEcommerceView: React.FC = () => {
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#0D5C63]">Omnichannel Fulfillment Suite</span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Staff E-Commerce & Delivery Control Center</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Manage online orders, FEFO stock reservation, pharmacist review, and delivery dispatch.</p>
+          <p className="text-xs text-slate-500 mt-0.5">Manage online orders, tile shade matching, customer verification, and delivery dispatch.</p>
         </div>
         <button onClick={loadData} className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all">
           Refresh Orders

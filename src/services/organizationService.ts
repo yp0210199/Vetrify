@@ -50,7 +50,7 @@ export const organizationService = {
   },
 
   /**
-   * Provision a new pharmacy organization, primary store, and owner staff record atomically.
+   * Provision a new business organization, primary showroom/godown, and owner staff record atomically.
    * Note: The Organization document explicitly does NOT contain ownerUid.
    * The owner is represented exclusively through /organizations/{orgId}/staff/{ownerUid} with roleId: 'owner'.
    */

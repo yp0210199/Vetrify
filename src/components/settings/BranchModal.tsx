@@ -161,8 +161,8 @@ export const BranchModal: React.FC<BranchModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={storeToEdit ? 'Edit Pharmacy Branch' : 'Register New Pharmacy Branch'}
-      subtitle="Configure branch location, Drug License, GSTIN, and operational status"
+      title={storeToEdit ? 'Edit Showroom / Godown Branch' : 'Register New Showroom / Godown Branch'}
+      subtitle="Configure branch location, Yard/Godown Code, GSTIN, and operational status"
       size="lg"
       footer={
         <div className="flex items-center justify-between w-full">
@@ -237,7 +237,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
           </div>
           <FormField label="Street / Premises">
             <TextInput
-              placeholder="Shop No. 4, Medical Square, Ring Road"
+              placeholder="Shop No. 4, Marble Market, Ring Road"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
             />
@@ -272,12 +272,12 @@ export const BranchModal: React.FC<BranchModalProps> = ({
         {/* Licensing & Compliance */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
-            label="Branch Drug License (Form 20B/21B)"
-            hint="Branch-specific DL number"
+            label="Branch Trade / Warehouse Reg. No."
+            hint="Branch-specific Trade / Yard license"
           >
             <TextInput
               icon={<FileText className="w-4 h-4" />}
-              placeholder="MH-MZ2-123456"
+              placeholder="TR-DL-2024-9871"
               value={drugLicenseNumber}
               onChange={(e) => setDrugLicenseNumber(e.target.value)}
             />
@@ -304,7 +304,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
               onChange={(e) => setIsMainBranch(e.target.checked)}
               className="rounded border-[#CBD5E1] text-[#0D5C63] focus:ring-[#0D5C63]"
             />
-            <span>Set as Primary / Main Pharmacy Branch</span>
+            <span>Set as Primary / Main Showroom Branch</span>
           </label>
 
           {storeToEdit && (

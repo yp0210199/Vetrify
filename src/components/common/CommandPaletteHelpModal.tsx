@@ -57,7 +57,7 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
     {
       id: 'search',
       label: 'Universal Global Search',
-      desc: 'Instant lookup across medicines, batches, customers, invoices & tasks',
+      desc: 'Instant lookup across tiles, lots, customers, invoices & tasks',
       icon: Search,
       hotkey: 'Ctrl + K',
       category: 'Search',
@@ -93,7 +93,7 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
     {
       id: 'transfers',
       label: 'Inter-Branch Stock Transfers',
-      desc: 'Transfer stock between pharmacy branches and centralized warehouses',
+      desc: 'Transfer stock between showroom branches and centralized godowns/yards',
       icon: ArrowLeftRight,
       hotkey: 'Alt + 4',
       category: 'Logistics',
@@ -116,8 +116,8 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
     },
     {
       id: 'compliance',
-      label: 'Schedule H1 & Drug Compliance',
-      desc: 'Schedule H/H1 registers, doctor prescriptions & regulatory audits',
+      label: 'GST & Material Compliance',
+      desc: 'GST registers, batch quality audits & HSN compliance records',
       icon: ShieldCheck,
       hotkey: 'Alt + 6',
       category: 'Compliance',
@@ -129,7 +129,7 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
     {
       id: 'settings',
       label: 'Organization & Staff Settings',
-      desc: 'Manage pharmacy branches, staff roles, security and system ledger',
+      desc: 'Manage showroom & godown branches, staff roles, and trade ledger',
       icon: Settings,
       hotkey: 'Alt + S',
       category: 'System',
@@ -164,8 +164,8 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
     {
       group: 'POS Counter Shortcuts',
       items: [
-        { label: 'Focus Medicine Search Input', keys: ['F2'] },
-        { label: 'Select Customer / Patient', keys: ['F4'] },
+        { label: 'Focus Product Search (Tiles / Sanitary / SKUs)', keys: ['F2'] },
+        { label: 'Select Customer / Contractor', keys: ['F4'] },
         { label: 'Apply Bill Discount', keys: ['F7'] },
         { label: 'Complete Cash / UPI Checkout', keys: ['F9'] },
         { label: 'Print Last Thermal Invoice', keys: ['Ctrl', 'P'] },
@@ -322,26 +322,26 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
         {/* Tab 3: Compliance & Help Guide */}
         {activeTab === 'guide' && (
           <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1 text-xs">
-            {/* Drug License & Schedule Notice */}
+            {/* Tile Shade & Caliber Notice */}
             <div className="p-3.5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl flex items-start gap-3 text-[#1E40AF]">
               <FileCheck2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#2563EB]" />
               <div>
-                <p className="font-bold text-xs">Drug License Compliance (Form 20B & 21B)</p>
+                <p className="font-bold text-xs">Tile Shade & Caliber Consistency (IS 15622 / ISO 13006)</p>
                 <p className="text-[11px] text-[#1D4ED8] mt-0.5 leading-relaxed">
-                  All Schedule H and H1 medicines must be dispensed against valid registered doctor prescriptions. 
-                  The patient details, prescriber registration number, and dispensing batch numbers are auto-logged to the regulatory register.
+                  All glazed vitrified tiles and slabs must be fulfilled using the same production shade lot and caliber group. 
+                  The system tracks tone numbers and millimeter calibration to prevent tonal variation across continuous room installations.
                 </p>
               </div>
             </div>
 
-            {/* Cold Chain Storage */}
+            {/* Yard & Godown Stacking Guidelines */}
             <div className="p-3.5 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl flex items-start gap-3 text-[#065F46]">
-              <ThermometerSnowflake className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#059669]" />
+              <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#059669]" />
               <div>
-                <p className="font-bold text-xs">Cold Chain Temperature Guidelines</p>
+                <p className="font-bold text-xs">Crate Stacking & Adhesive Storage Guidelines</p>
                 <p className="text-[11px] text-[#047857] mt-0.5 leading-relaxed">
-                  Vaccines, insulins, and biologic serums require uninterrupted temperature monitoring:
-                  Standard Cold Chain (+2°C to +8°C) and Deep Freeze (-20°C). Any excursions trigger immediate alerts.
+                  GVT & Ceramic slab crates must be stored vertically with A-frame support (maximum 5-7 crates per stack). 
+                  Tile adhesives and polymer grouts require moisture-proof, dry indoor pallet storage to prevent premature hydration.
                 </p>
               </div>
             </div>
@@ -350,9 +350,9 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
             <div className="p-3.5 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl flex items-start gap-3 text-[#92400E]">
               <ReceiptText className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#D97706]" />
               <div>
-                <p className="font-bold text-xs">GST Rates & HSN Coding</p>
+                <p className="font-bold text-xs">GST Rates & Ceramic HSN Coding</p>
                 <p className="text-[11px] text-[#B45309] mt-0.5 leading-relaxed">
-                  Pharmaceutical formulations typically fall under HSN 3004 with 5% or 12% GST brackets. 
+                  Vitrified/Ceramic Tiles (HSN 6907) and Sanitaryware (HSN 6910) fall under 18% GST. CP & Faucets (HSN 8481) fall under 18%.
                   E-Way bills are mandatory for inter-state consignment movements exceeding ₹50,000.
                 </p>
               </div>
@@ -360,12 +360,12 @@ export const CommandPaletteHelpModal: React.FC<CommandPaletteHelpModalProps> = (
 
             {/* Multi-Tenant Security */}
             <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-start gap-3 text-[#475569]">
-              <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#0D5C63]" />
+              <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#0066FF]" />
               <div>
-                <p className="font-bold text-xs text-[#0B1F33]">Data Segregation & Store Isolation</p>
+                <p className="font-bold text-xs text-[#0B1F33]">Data Segregation & Yard Isolation</p>
                 <p className="text-[11px] text-[#64748B] mt-0.5 leading-relaxed">
-                  All inventory batches, patient billing ledgers, and staff permission matrices are strictly segregated 
-                  by Organization and Store Branch context with real-time cloud synchronization.
+                  All inventory lots, customer billing ledgers, and staff permission matrices are strictly segregated 
+                  by Organization and Showroom / Godown context with real-time cloud synchronization.
                 </p>
               </div>
             </div>

@@ -55,7 +55,7 @@ export const OrganizationSettingsTab: React.FC = () => {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Pharmacy trade name is required';
+    if (!name.trim()) errs.name = 'Trading brand name is required';
     if (gstin.trim() && gstin.trim().length !== 15) {
       errs.gstin = 'GSTIN must be exactly 15 characters';
     }
@@ -108,11 +108,11 @@ export const OrganizationSettingsTab: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
         <div>
           <h2 className="text-lg font-bold text-[#0B1F33] flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#0D5C63]" />
-            Pharmacy Organization Profile & Legal Entity
+            <Building2 className="w-5 h-5 text-[#0066FF]" />
+            Tiles & Building Materials Organization Profile
           </h2>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Configure central registered business credentials, statutory drug licensing, and pharmacy compliance rules.
+            Configure central registered business credentials, GSTIN, Trade licensing, and material quality compliance.
           </p>
         </div>
 
@@ -137,7 +137,7 @@ export const OrganizationSettingsTab: React.FC = () => {
       {/* Legal Entity Details */}
       <div className="bg-[#F8FAFC] p-5 rounded-2xl border border-[#E2E8F0] space-y-4">
         <h3 className="text-sm font-bold text-[#0B1F33] flex items-center gap-2">
-          <FileText className="w-4 h-4 text-[#0D5C63]" /> Business Registration & Licensing
+          <FileText className="w-4 h-4 text-[#0066FF]" /> Business Registration & Licensing
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -152,7 +152,7 @@ export const OrganizationSettingsTab: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               disabled={!canEditOrganization}
               hasError={!!formErrors.name}
-              placeholder="e.g. Apex Health Pharmacy"
+              placeholder="e.g. Royal Ceramics & Tiles"
             />
           </FormField>
 
@@ -164,7 +164,7 @@ export const OrganizationSettingsTab: React.FC = () => {
               value={legalName}
               onChange={(e) => setLegalName(e.target.value)}
               disabled={!canEditOrganization}
-              placeholder="e.g. Apex Healthcare Private Limited"
+              placeholder="e.g. Royal Ceramics & Building Materials Pvt Ltd"
             />
           </FormField>
         </div>
@@ -186,14 +186,14 @@ export const OrganizationSettingsTab: React.FC = () => {
           </FormField>
 
           <FormField
-            label="Central Drug License (Form 20B/21B)"
-            hint="State Drug Control Administration license"
+            label="Trade / Factory / MSME Registration No."
+            hint="State Trade / Industry / MSME Reg. No."
           >
             <TextInput
               value={drugLicenseNumber}
               onChange={(e) => setDrugLicenseNumber(e.target.value)}
               disabled={!canEditOrganization}
-              placeholder="MH-NZ4-100234 / Form 20B, 21B"
+              placeholder="MSME-UDYAM-MH-12-0045612"
             />
           </FormField>
         </div>
@@ -202,18 +202,18 @@ export const OrganizationSettingsTab: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#E2E8F0]">
           <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] text-xs space-y-1">
             <div className="text-[#64748B] flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 text-[#0D5C63]" /> Operational Currency
+              <Coins className="w-3.5 h-3.5 text-[#0066FF]" /> Operational Currency
             </div>
             <div className="font-bold text-[#0B1F33]">INR (₹) — Indian Rupee</div>
-            <div className="text-[11px] text-[#94A3B8]">Fixed standard for Indian Pharmacy Operations</div>
+            <div className="text-[11px] text-[#94A3B8]">Fixed standard for Indian Building Materials Business</div>
           </div>
 
           <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] text-xs space-y-1">
             <div className="text-[#64748B] flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#0D5C63]" /> System Timezone
+              <Clock className="w-3.5 h-3.5 text-[#0066FF]" /> System Timezone
             </div>
             <div className="font-bold text-[#0B1F33]">Asia/Kolkata (IST — UTC+05:30)</div>
-            <div className="text-[11px] text-[#94A3B8]">Compliant with Indian Drug Rule record timings</div>
+            <div className="text-[11px] text-[#94A3B8]">Standard Indian Timezone (IST - UTC+05:30)</div>
           </div>
         </div>
       </div>
@@ -221,16 +221,16 @@ export const OrganizationSettingsTab: React.FC = () => {
       {/* Operational Rules & Compliance Controls */}
       <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] space-y-4">
         <h3 className="text-sm font-bold text-[#0B1F33] flex items-center gap-2">
-          <Shield className="w-4 h-4 text-[#0D5C63]" /> Pharmacy Operations & Compliance Rules
+          <Shield className="w-4 h-4 text-[#0066FF]" /> Tiles & Building Materials Quality & Dispatch Rules
         </h3>
 
         <div className="space-y-3">
-          {/* FEFO Enforcement */}
+          {/* Shade & Caliber Consistency */}
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-xl border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all">
             <div>
-              <div className="text-sm font-bold text-[#0B1F33]">Strict FEFO Enforcement</div>
+              <div className="text-sm font-bold text-[#0B1F33]">Strict Shade & Caliber Lot Matching</div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Automatically prioritize dispensing older sellable medicine batches first and block dispensing of newer batches when older non-expired batches exist.
+                Enforce same shade and caliber lot consistency on tile and slab orders to prevent tonal and dimensional variation at customer sites.
               </p>
             </div>
             <input
@@ -238,16 +238,16 @@ export const OrganizationSettingsTab: React.FC = () => {
               checked={fefoStrictEnforcement}
               onChange={(e) => setFefoStrictEnforcement(e.target.checked)}
               disabled={!canEditOrganization}
-              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0D5C63] focus:ring-[#0D5C63]"
+              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0066FF] focus:ring-[#0066FF]"
             />
           </div>
 
-          {/* Schedule H / H1 Auto Register */}
+          {/* Project & Delivery Challan Register */}
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-xl border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all">
             <div>
-              <div className="text-sm font-bold text-[#0B1F33]">Schedule H / H1 / X Auto Register</div>
+              <div className="text-sm font-bold text-[#0B1F33]">Architect & Contractor Delivery Challan Register</div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Automatically log mandatory prescription and prescriber doctor details for Schedule H/H1 drugs during POS dispensing into the statutory register.
+                Automatically link architect/contractor referral details and project site addresses with billing delivery challans.
               </p>
             </div>
             <input
@@ -255,7 +255,7 @@ export const OrganizationSettingsTab: React.FC = () => {
               checked={scheduleHAutoRegister}
               onChange={(e) => setScheduleHAutoRegister(e.target.checked)}
               disabled={!canEditOrganization}
-              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0D5C63] focus:ring-[#0D5C63]"
+              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0066FF] focus:ring-[#0066FF]"
             />
           </div>
 
@@ -272,16 +272,16 @@ export const OrganizationSettingsTab: React.FC = () => {
               checked={taxInclusivePricing}
               onChange={(e) => setTaxInclusivePricing(e.target.checked)}
               disabled={!canEditOrganization}
-              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0D5C63] focus:ring-[#0D5C63]"
+              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0066FF] focus:ring-[#0066FF]"
             />
           </div>
 
           {/* Auto Reorder Triggers */}
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-xl border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all">
             <div>
-              <div className="text-sm font-bold text-[#0B1F33]">Low Stock & Near Expiry Auto Alerts</div>
+              <div className="text-sm font-bold text-[#0B1F33]">Low Stock & Breakage Scrap Alerts</div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Generate in-app notifications and purchase triggers automatically whenever batch quantities drop below minimum reorder levels or approach expiry within 60 days.
+                Generate in-app notifications and purchase triggers automatically whenever slab/box quantities drop below minimum threshold or damage scrap occurs.
               </p>
             </div>
             <input
@@ -289,7 +289,7 @@ export const OrganizationSettingsTab: React.FC = () => {
               checked={autoReorderTriggers}
               onChange={(e) => setAutoReorderTriggers(e.target.checked)}
               disabled={!canEditOrganization}
-              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0D5C63] focus:ring-[#0D5C63]"
+              className="mt-1 w-5 h-5 rounded border-[#CBD5E1] text-[#0066FF] focus:ring-[#0066FF]"
             />
           </div>
         </div>

@@ -174,8 +174,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title="Pharmacy Notifications"
-      subtitle="Operational alerts, expiry thresholds, and staff reminders"
+      title="Workspace Notifications"
+      subtitle="Operational alerts, breakage thresholds, and staff reminders"
       width="lg"
       footer={
         <div className="flex items-center justify-between w-full gap-2">

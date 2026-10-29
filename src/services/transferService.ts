@@ -634,7 +634,7 @@ export const transferService = {
         receiptNotes: receiptDetails.receiptNotes || '',
         discrepancyNotes: receiptDetails.discrepancyNotes || '',
         receivedByUid: caller.uid,
-        receivedByName: caller.displayName || caller.email || 'Branch Pharmacist',
+        receivedByName: caller.displayName || caller.email || 'Godown Supervisor',
         receivedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

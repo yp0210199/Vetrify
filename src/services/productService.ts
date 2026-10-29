@@ -24,6 +24,7 @@ import {
   ProductImportSummary,
 } from '../types/product';
 import { validateProduct } from '../lib/firebase/validators';
+import { sanitizeFirestorePayload } from '../lib/firebase/queryUtils';
 import { logAuditEvent } from './auditService';
 
 function getProductsRef(organizationId: string) {
@@ -248,8 +249,10 @@ export async function createProduct(
 
   const sku = payload.sku?.trim() || generateProductSku(payload.productName);
   const normName = normalizeString(payload.productName);
+  const { id: _ignoreId, ...restPayload } = payload as any;
 
-  const createPayload: ProductCreatePayload = {
+  const createPayload: Record<string, any> = {
+    ...restPayload,
     id: productId,
     organizationId,
     sku,
@@ -257,11 +260,12 @@ export async function createProduct(
     productName: payload.productName.trim(),
     normalizedProductName: normName,
     brand: payload.brand.trim(),
+    categoryType: payload.categoryType || 'tiles',
     productType: payload.productType || 'Vitrified Tiles',
     categoryId: payload.categoryId || 'uncategorized',
     categoryName: payload.categoryName || 'General',
     manufacturerId: payload.manufacturerId || 'unassigned',
-    manufacturerName: payload.manufacturerName || 'Generic Manufacturer',
+    manufacturerName: payload.manufacturerName || payload.brand.trim() || 'Generic Manufacturer',
     classificationId: payload.classificationId || '',
     packaging: payload.packaging || { packUnit: 'Box', baseUnit: 'Sq. Ft', conversionFactor: 15.5 },
     hsnCode: payload.hsnCode || '6907',
@@ -278,6 +282,7 @@ export async function createProduct(
     mediaAssetId: payload.mediaAssetId || null,
     mediaPublicId: payload.mediaPublicId || null,
     mediaUrl: payload.mediaUrl || null,
+    imageUrl: payload.imageUrl || payload.mediaUrl || null,
     status: payload.status || 'active',
     createdByUid: caller.uid,
     updatedByUid: caller.uid,
@@ -285,7 +290,8 @@ export async function createProduct(
     updatedAt: serverTimestamp(),
   };
 
-  await setDoc(newDocRef, createPayload);
+  const sanitized = sanitizeFirestorePayload(createPayload);
+  await setDoc(newDocRef, sanitized);
 
   await logAuditEvent(organizationId, {
     actorUid: caller.uid,
@@ -332,7 +338,8 @@ export async function updateProduct(
     updatePayload.normalizedProductName = normalizeString(updates.productName);
   }
 
-  await updateDoc(docRef, updatePayload);
+  const sanitized = sanitizeFirestorePayload(updatePayload);
+  await updateDoc(docRef, sanitized);
 
   await logAuditEvent(organizationId, {
     actorUid: caller.uid,

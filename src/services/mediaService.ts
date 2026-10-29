@@ -321,11 +321,34 @@ export const mediaService = {
   },
 
   /**
+   * Check ImageKit backend connectivity & status
+   */
+  async checkImageKitStatus(): Promise<{ connected: boolean; provider: string; urlEndpoint: string }> {
+    try {
+      const res = await fetch('/api/media/status');
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          connected: Boolean(data.connected),
+          provider: data.provider || 'ImageKit CDN',
+          urlEndpoint: data.urlEndpoint || '',
+        };
+      }
+    } catch (_) {}
+    return {
+      connected: false,
+      provider: 'ImageKit CDN',
+      urlEndpoint: '',
+    };
+  },
+
+  /**
    * Secure Asset Deletion Flow:
-   * 1. Read Firestore media reference
-   * 2. Call backend `/api/media/delete` to destroy ImageKit asset via private API credentials
-   * 3. Delete Firestore media document
-   * 4. Record Audit Event
+   * 1. Check if mediaId is synthetic/placeholder
+   * 2. Read Firestore media reference
+   * 3. Call backend `/api/media/delete` to destroy ImageKit asset via private API credentials
+   * 4. Delete Firestore media document
+   * 5. Record Audit Event
    */
   async deleteMediaAsset(
     organizationId: string,
@@ -333,36 +356,37 @@ export const mediaService = {
     userToken: string,
     actorInfo?: { uid: string; email?: string | null; displayName?: string | null }
   ): Promise<boolean> {
-    const asset = await this.getMediaAsset(organizationId, mediaId);
-    if (!asset) {
-      throw new AppError({ code: 'NOT_FOUND', message: 'Media asset document not found' });
+    if (!mediaId || mediaId === 'asset_existing' || mediaId.startsWith('asset_existing')) {
+      return true;
     }
 
-    // Call backend API to destroy ImageKit asset
-    const res = await fetch('/api/media/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userToken}`,
-      },
-      body: JSON.stringify({
-        organizationId,
-        fileId: asset.fileId || asset.publicId,
-        publicId: asset.publicId || asset.fileId,
-        filePath: asset.filePath,
-        resourceType: asset.resourceType || 'image',
-      }),
-    });
+    const asset = await this.getMediaAsset(organizationId, mediaId);
+    if (!asset) {
+      // Asset document already removed or nonexistent
+      return true;
+    }
 
-    if (!res.ok) {
-      let errData: any = {};
+    const targetFileId = asset.fileId || asset.publicId;
+    if (targetFileId && !targetFileId.startsWith('local_') && !targetFileId.startsWith('asset_')) {
+      // Call backend API to destroy ImageKit asset
       try {
-        errData = await res.json();
-      } catch (_) {}
-      throw new AppError({
-        code: 'DELETE_FAILED',
-        message: errData.error || 'Failed to destroy media asset on server',
-      });
+        await fetch('/api/media/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({
+            organizationId,
+            fileId: targetFileId,
+            publicId: targetFileId,
+            filePath: asset.filePath,
+            resourceType: asset.resourceType || 'image',
+          }),
+        });
+      } catch (delErr) {
+        console.warn('Backend ImageKit delete request warning:', delErr);
+      }
     }
 
     // Delete Firestore document

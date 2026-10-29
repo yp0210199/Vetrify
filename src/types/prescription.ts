@@ -1,84 +1,78 @@
 import { Timestamp } from 'firebase/firestore';
 
-export interface PrescribedMedicine {
-  name: string;
-  strength?: string;
+export type ScheduleType = 'H' | 'H1' | 'X' | 'G' | 'OTC' | string;
+
+export type PrescriptionStatus = 'pending' | 'verified' | 'rejected' | 'dispensed';
+
+export interface PrescriptionMedicineItem {
+  medicineName: string;
   dosage?: string;
+  frequency?: string;
   duration?: string;
-  matchedProductId?: string | null;
-  matchScore?: number; // 0 to 100
+  quantity?: number;
+  schedule?: ScheduleType;
 }
 
 export interface Prescription {
   id: string;
   organizationId: string;
   storeId: string;
-  status: 'pending' | 'verified' | 'rejected';
-  
-  // Link to ImageKit uploaded asset
-  mediaId?: string;
-  secureUrl?: string;
-  originalFilename?: string;
-  
-  // OCR Extracted & Verified details
   patientName: string;
-  patientAge: number;
-  patientGender: 'male' | 'female' | 'other';
+  patientAge?: number | string;
+  patientGender?: 'male' | 'female' | 'other' | string;
   patientPhone?: string;
-  
   doctorName: string;
   doctorRegNo: string;
   hospitalClinic?: string;
-  prescriptionDate: string; // YYYY-MM-DD
-  
-  medicines: PrescribedMedicine[];
-  notes?: string;
-  
-  // Audit details
-  createdByUid: string;
-  createdByName?: string;
-  createdAt: Timestamp;
+  prescriptionDate: string;
+  originalFilename?: string;
+  secureUrl: string;
+  medicines?: PrescriptionMedicineItem[];
+  status: PrescriptionStatus;
+  verificationNotes?: string;
   verifiedByUid?: string;
   verifiedByName?: string;
-  verifiedAt?: Timestamp | null;
+  verifiedAt?: Timestamp | string | null;
+  createdByUid: string;
+  createdByName: string;
+  createdAt?: Timestamp | any;
+  updatedAt?: Timestamp | any;
 }
 
-export interface ScheduleH1RegisterEntryItem {
+export type CreatePrescriptionPayload = Omit<
+  Prescription,
+  'id' | 'organizationId' | 'storeId' | 'createdAt' | 'updatedAt'
+>;
+
+export interface ScheduleH1RegisterItem {
   productId: string;
   productName: string;
+  schedule: ScheduleType;
   batchNumber: string;
   quantity: number;
   expiryDate: string;
-  manufacturerName?: string;
-  schedule: 'H' | 'H1' | 'X';
 }
 
 export interface ScheduleH1RegisterEntry {
   id: string;
   organizationId: string;
-  storeId: string;
+  storeId?: string;
   invoiceId: string;
   invoiceNumber: string;
-  
-  // Patient Details
+  invoiceDate?: string;
   patientName: string;
-  patientAge: number;
-  patientGender: 'male' | 'female' | 'other';
+  patientAge: number | string;
+  patientGender: 'male' | 'female' | 'other' | string;
   patientPhone?: string;
-  
-  // Doctor Details
+  patientAddress?: string;
   doctorName: string;
   doctorRegNo: string;
   hospitalClinic?: string;
-  
-  // Prescribed restricted drugs sold
-  items: ScheduleH1RegisterEntryItem[];
-  
-  // Timestamp and UID of verifying pharmacist
-  createdByUid: string;
-  createdByName?: string;
-  createdAt: Timestamp;
-  
-  // Link to uploaded prescription (ImageKit URL)
   prescriptionUrl?: string;
+  prescriptionDate?: string;
+  createdByName?: string;
+  createdByUid?: string;
+  items: ScheduleH1RegisterItem[];
+  createdAt?: Timestamp | any;
+  updatedAt?: Timestamp | any;
 }

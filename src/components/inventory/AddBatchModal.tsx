@@ -107,7 +107,7 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
     if (!organization || !user) return;
 
     if (!selectedProduct) {
-      setErrorMessage('Please select a medicine product from the catalog master.');
+      setErrorMessage('Please select a tile / catalog product from the catalog master.');
       return;
     }
 
@@ -210,7 +210,7 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
         {/* Header */}
         <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-[#0B1F33] text-sm">Inward Medicine Batch Lot</h3>
+            <h3 className="font-extrabold text-[#0B1F33] text-sm">Inward Tile / Material Stock Lot</h3>
             <p className="text-[11px] text-[#64748B]">Physically inward stock lots tied to a catalog master SKU</p>
           </div>
           <button
@@ -233,7 +233,7 @@ export const AddBatchModal: React.FC<AddBatchModalProps> = ({
 
           {/* Product Selector */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-bold text-[#334155] block">Medicine Product Master <span className="text-red-500">*</span></label>
+            <label className="text-xs font-bold text-[#334155] block">Tile / Material Catalog Master <span className="text-red-500">*</span></label>
             <div className="relative">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#94A3B8]" />
               <input

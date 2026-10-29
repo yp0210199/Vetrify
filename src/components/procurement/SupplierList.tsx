@@ -262,7 +262,7 @@ export const SupplierList: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-[#0B1F33]">Supplier Directory & Ledger</h2>
-            <p className="text-xs text-[#64748B]">Manage vendors, drug license verification, and credit balances</p>
+            <p className="text-xs text-[#64748B]">Manage manufacturers, vendors, trade license verification, and credit balances</p>
           </div>
         </div>
 
@@ -349,7 +349,7 @@ export const SupplierList: React.FC = () => {
                   )}
                   {supplier.drugLicenseNumber && (
                     <p className="flex items-center gap-1.5 text-[11px]">
-                      <span className="text-[#94A3B8]">DL No:</span> {supplier.drugLicenseNumber}
+                      <span className="text-[#94A3B8]">Trade Reg:</span> {supplier.drugLicenseNumber}
                     </p>
                   )}
                   <p className="flex items-center gap-1.5">
@@ -412,7 +412,7 @@ export const SupplierList: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingSupplier ? 'Edit Supplier Details' : 'Create Supplier Master'}
-        subtitle="Specify statutory GSTIN, Drug License, and credit terms"
+        subtitle="Specify statutory GSTIN, Trade/Factory License, and credit terms"
         width="md"
       >
         <form onSubmit={handleSaveSupplier} className="space-y-4">
@@ -424,7 +424,7 @@ export const SupplierList: React.FC = () => {
               <TextInput
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Cipla Pharma Ltd"
+                placeholder="e.g. Kajaria Ceramics Ltd"
                 required
               />
             </div>
@@ -433,7 +433,7 @@ export const SupplierList: React.FC = () => {
               <TextInput
                 value={formData.displayName}
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                placeholder="e.g. Cipla"
+                placeholder="e.g. Kajaria"
               />
             </div>
           </div>
@@ -459,30 +459,30 @@ export const SupplierList: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Drug License (General/20B/21B)</label>
+              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Trade / MSME Reg. No.</label>
               <TextInput
                 value={formData.drugLicenseNumber}
                 onChange={(e) => setFormData({ ...formData, drugLicenseNumber: e.target.value })}
-                placeholder="DL-10023"
+                placeholder="MSME-10023"
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Drug License 20B</label>
+              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Factory / Yard License No.</label>
               <TextInput
                 value={formData.drugLicense20B}
                 onChange={(e) => setFormData({ ...formData, drugLicense20B: e.target.value })}
-                placeholder="20B-DL-10023"
+                placeholder="FACT-GJ-10023"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Drug License 21B</label>
+              <label className="text-xs font-bold text-[#0B1F33] block mb-1">Pollution / BIS Certification No.</label>
               <TextInput
                 value={formData.drugLicense21B}
                 onChange={(e) => setFormData({ ...formData, drugLicense21B: e.target.value })}
-                placeholder="21B-DL-10023"
+                placeholder="BIS-CM-10023"
               />
             </div>
             <div>
@@ -513,7 +513,7 @@ export const SupplierList: React.FC = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="orders@cipladist.com"
+                placeholder="orders@kajariaceramics.com"
               />
             </div>
           </div>

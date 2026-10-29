@@ -135,12 +135,12 @@ export const WholesaleOrders: React.FC<WholesaleOrdersProps> = ({
 
     return {
       productId: i.productId,
-      productName: prod?.productName || 'Medicine',
+      productName: prod?.productName || 'Material / Item',
       brand: prod?.brand || 'Brand',
       strength: prod?.strength,
       dosageForm: prod?.dosageForm,
       sku: prod?.sku || 'SKU-001',
-      hsnCode: prod?.hsnCode || '3004',
+      hsnCode: prod?.hsnCode || '6907',
       orderedQty: i.orderedQty,
       reservedQty: 0,
       fulfilledQty: 0,
@@ -409,7 +409,7 @@ export const WholesaleOrders: React.FC<WholesaleOrdersProps> = ({
                 1. Account & Terms
               </span>
               <span className={wizardStep === 2 ? 'text-emerald-700 underline font-black' : ''}>
-                2. Select Products & FEFO Stock
+                2. Select Products & Lot / Shade Stock
               </span>
               <span className={wizardStep === 3 ? 'text-emerald-700 underline font-black' : ''}>
                 3. Credit & Review
@@ -498,13 +498,13 @@ export const WholesaleOrders: React.FC<WholesaleOrdersProps> = ({
               {wizardStep === 2 && (
                 <div className="space-y-4">
                   <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200/60 space-y-3">
-                    <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">Product Selector & FEFO Stock Availability</h3>
+                    <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">Product Selector & Batch / Lot Stock Availability</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                       <div className="sm:col-span-2">
                         <SearchableSelect
-                          label="Select Medicine / Product"
+                          label="Select Tile / Sanitary Product"
                           placeholder="-- Search & Choose Product --"
-                          searchPlaceholder="Search product by name, brand, salt, composition..."
+                          searchPlaceholder="Search product by name, brand, finish, dimensions, SKU..."
                           value={selectedProdId}
                           onChange={(val) => handleSelectProduct(val)}
                           options={safeProducts.map((p) => {
@@ -512,7 +512,7 @@ export const WholesaleOrders: React.FC<WholesaleOrdersProps> = ({
                             return {
                               value: p.id,
                               label: p.productName,
-                              subLabel: `${p.brand || 'Pharma'} • Avail: ${p.totalAvailableQuantity || 0} units`,
+                              subLabel: `${p.brand || 'Vetrify'} • Avail: ${p.totalAvailableQuantity || 0} units`,
                               sku: p.sku,
                               badge: `Avail: ${p.totalAvailableQuantity || 0}`,
                               badgeColor: isLow ? 'amber' : 'emerald',

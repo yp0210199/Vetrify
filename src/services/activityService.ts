@@ -144,26 +144,26 @@ export const activityService = {
       case 'QUARANTINE_CREATED':
         taskType = 'QUARANTINE_REVIEW';
         module = 'compliance';
-        taskTitle = `Verify Quarantined Batch: ${data.entityLabel}`;
-        taskDesc = `Batch has been quarantined. Details: ${data.details}. Perform investigation and document findings.`;
+        taskTitle = `Verify Quarantined Material Lot: ${data.entityLabel}`;
+        taskDesc = `Lot has been quarantined. Details: ${data.details}. Perform shade/caliber investigation and document findings.`;
         priority = 'HIGH';
-        assignedRole = 'pharmacist';
+        assignedRole = 'manager';
         break;
       case 'DESTRUCTION_REQUESTED':
         taskType = 'DESTRUCTION_APPROVAL';
         module = 'compliance';
-        taskTitle = `Approve Drug Destruction: ${data.entityLabel}`;
-        taskDesc = `Request submitted for drug destruction. Details: ${data.details}. Review and authorize.`;
+        taskTitle = `Approve Scrap Disposal: ${data.entityLabel}`;
+        taskDesc = `Request submitted for broken stock / scrap disposal. Details: ${data.details}. Review and authorize.`;
         priority = 'URGENT';
         assignedRole = 'owner';
         break;
       case 'H1_PRESCRIBED':
         taskType = 'H1_REVIEW';
         module = 'compliance';
-        taskTitle = `Log Schedule H1 Register Entry: ${data.entityLabel}`;
-        taskDesc = `A schedule H1 prescription has been filled. Details: ${data.details}. Verify patient identity and log entry.`;
+        taskTitle = `Log Delivery Challan Entry: ${data.entityLabel}`;
+        taskDesc = `Project consignment has been dispatched. Details: ${data.details}. Verify site delivery and log entry.`;
         priority = 'MEDIUM';
-        assignedRole = 'pharmacist';
+        assignedRole = 'sales_staff';
         break;
       case 'STOCK_LOW':
         taskType = 'REORDER_REVIEW';

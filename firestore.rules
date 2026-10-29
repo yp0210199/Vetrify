@@ -13,12 +13,12 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == uid;
     }
 
-    // Role Hierarchy Rank mapping:
-    // owner (6) > admin (5) > manager (4) > pharmacist (3) > cashier (2) > staff (1)
+    // owner (6) > admin (5) > manager (4) > sales_staff / pharmacist (3) > cashier (2) > staff (1)
     function roleRank(roleId) {
       return roleId == 'owner' ? 6 :
              roleId == 'admin' ? 5 :
              roleId == 'manager' ? 4 :
+             roleId == 'sales_staff' ? 3 :
              roleId == 'pharmacist' ? 3 :
              roleId == 'cashier' ? 2 :
              roleId == 'staff' ? 1 : 0;
@@ -838,8 +838,7 @@ service cloud.firestore {
       }
 
       // -----------------------------------------------------------------------
-      // 2af. Immutable Schedule H1 Regulatory Register (/organizations/{orgId}/scheduleH1Register/{entryId})
-      // Once written, records are strictly read-only and immutable.
+      // 2af. Statutory Register & Quality Overrides
       // -----------------------------------------------------------------------
       match /scheduleH1Register/{entryId} {
         allow read: if isStaffMember(orgId);
@@ -850,6 +849,18 @@ service cloud.firestore {
           request.resource.data.createdByUid == request.auth.uid;
 
         // No update and no delete under any circumstances to enforce compliance
+        allow update, delete: if false;
+      }
+
+      match /qualityOverrideLogs/{logId} {
+        allow read: if isStaffMember(orgId);
+        allow create: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow update, delete: if false;
+      }
+
+      match /clinicalSafetyLogs/{logId} {
+        allow read: if isStaffMember(orgId);
+        allow create: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
         allow update, delete: if false;
       }
 

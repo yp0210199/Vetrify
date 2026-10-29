@@ -252,7 +252,7 @@ export const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Regular patient taking diabetes medication"
+              placeholder="e.g. Architect, turnkey contractor, bulk vitrified tiles buyer"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"

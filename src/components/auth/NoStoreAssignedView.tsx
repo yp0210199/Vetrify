@@ -25,7 +25,7 @@ export const NoStoreAssignedView: React.FC = () => {
             You are an active team member of <span className="font-semibold text-white">{organization?.name}</span>, but no store branch has been assigned to your account yet.
           </p>
           <p className="text-[11px] text-[#64748B]">
-            Please contact your pharmacy owner or administrator to assign a store branch to your profile.
+            Please contact your showroom owner or administrator to assign a showroom or godown branch to your profile.
           </p>
         </div>
 

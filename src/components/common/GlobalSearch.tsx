@@ -74,8 +74,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose, onS
 
   const categories = [
     { id: 'all', label: 'All Records' },
-    { id: 'products', label: 'Medicines' },
-    { id: 'batches', label: 'Batches' },
+    { id: 'products', label: 'Tiles & Catalog' },
+    { id: 'batches', label: 'Lots & Batches' },
     { id: 'customers', label: 'Customers' },
     { id: 'invoices', label: 'Invoices & Orders' },
     { id: 'tasks', label: 'Tasks' },
@@ -134,7 +134,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose, onS
             autoFocus
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
-            placeholder="Search medicines, batches, customers, invoices, POs, tasks... (e.g. Paracetamol, rahul)"
+            placeholder="Search tiles, sanitaryware, lots, customers, invoices, POs, tasks... (e.g. Vitrified 600x1200, Kajaria, rahul)"
             className="w-full text-base text-[#0B1F33] placeholder-[#94A3B8] focus:outline-none"
           />
           {queryText ? (
@@ -179,9 +179,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose, onS
                 </span>
                 <div className="mt-2 space-y-1">
                   {[
-                    { text: 'Paracetamol', category: 'Medicine' },
-                    { text: 'Batch', category: 'Batch / SKU' },
-                    { text: 'Rahul', category: 'Customer' },
+                    { text: 'Kajaria Vitrified', category: 'Tiles & Slabs' },
+                    { text: 'Wall Hung Closet', category: 'Sanitaryware' },
+                    { text: 'Tile Adhesive 20kg', category: 'Adhesives' },
                     { text: 'Invoice', category: 'Invoice' },
                   ].map((item, idx) => (
                     <button

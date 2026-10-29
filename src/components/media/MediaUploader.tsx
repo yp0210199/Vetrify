@@ -42,6 +42,18 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [progressPercent, setProgressPercent] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [currentAsset, setCurrentAsset] = useState<MediaAsset | null>(value || null);
+  const [ikStatus, setIkStatus] = useState<{ connected: boolean; provider: string; urlEndpoint: string } | null>(null);
+
+  React.useEffect(() => {
+    mediaService
+      .checkImageKitStatus()
+      .then((st) => setIkStatus(st))
+      .catch(() => setIkStatus({ connected: false, provider: 'ImageKit CDN', urlEndpoint: '' }));
+  }, []);
+
+  React.useEffect(() => {
+    setCurrentAsset(value || null);
+  }, [value]);
 
   const limits = MEDIA_LIMITS[category as keyof typeof MEDIA_LIMITS] || MEDIA_LIMITS['general-document'];
 
@@ -128,7 +140,21 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
   return (
     <div className="space-y-2 w-full">
-      {label && <label className="block text-xs font-bold text-[#0B1F33]">{label}</label>}
+      <div className="flex items-center justify-between">
+        {label && <label className="block text-xs font-bold text-[#0B1F33]">{label}</label>}
+        {ikStatus && (
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                ikStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+              }`}
+            />
+            <span className={ikStatus.connected ? 'text-emerald-700 font-bold' : 'text-amber-700 font-medium'}>
+              {ikStatus.connected ? 'ImageKit Connected' : 'ImageKit Disconnected'}
+            </span>
+          </div>
+        )}
+      </div>
 
       {currentAsset ? (
         <MediaPreview asset={currentAsset} onRemove={disabled ? undefined : handleRemove} />

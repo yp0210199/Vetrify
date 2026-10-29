@@ -242,7 +242,7 @@ export const ReplenishmentView: React.FC = () => {
                       className="rounded text-[#0D5C63] focus:ring-[#0D5C63]"
                     />
                   </th>
-                  <th className="p-4">Medicine Details</th>
+                  <th className="p-4">Product / Material Details</th>
                   <th className="p-4">Inventory Status</th>
                   <th className="p-4">Demand Forecast</th>
                   <th className="p-4">Recommended Qty</th>

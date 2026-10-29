@@ -170,7 +170,7 @@ export function SupplierReturnModal({ isOpen, onClose, onSuccess }: SupplierRetu
         {
           uid: user.uid,
           email: user.email,
-          displayName: user.displayName || 'Pharmacist',
+          displayName: user.displayName || 'Store Manager',
         },
         {
           storeId: currentStore.id,
@@ -235,8 +235,8 @@ export function SupplierReturnModal({ isOpen, onClose, onSuccess }: SupplierRetu
             <div className="flex-1">
               <SearchableSelect
                 label="Select Stock Batch to Return to Vendor"
-                placeholder="-- Search Medicine Name or Batch Number --"
-                searchPlaceholder="Search product, batch #, expiry..."
+                placeholder="-- Search Tile / Material or Lot Number --"
+                searchPlaceholder="Search product, lot #, shade..."
                 value={selectedBatchId}
                 onChange={(val) => setSelectedBatchId(val)}
                 options={batches.map((b) => ({
@@ -315,10 +315,10 @@ export function SupplierReturnModal({ isOpen, onClose, onSuccess }: SupplierRetu
                         }}
                         className="p-1 text-xs border border-slate-300 rounded"
                       >
-                        <option value="near_expiry">Near Expiry Stock</option>
-                        <option value="expired">Expired Stock</option>
-                        <option value="damaged">Damaged Goods</option>
-                        <option value="recalled">Drug Recalled</option>
+                        <option value="near_expiry">Slow Moving Stock</option>
+                        <option value="expired">Dead / Obsolete Stock</option>
+                        <option value="damaged">Damaged / Broken Goods</option>
+                        <option value="recalled">Manufacturer Batch Recall / Defect</option>
                         <option value="overstock">Overstock Agreement</option>
                       </select>
                     </td>

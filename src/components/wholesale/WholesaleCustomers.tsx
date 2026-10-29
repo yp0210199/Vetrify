@@ -392,8 +392,8 @@ export const WholesaleCustomers: React.FC<WholesaleCustomersProps> = ({
                     onChange={(e) => setFormData({ ...formData, customerType: e.target.value as any })}
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    <option value="B2B">Retail Pharmacy / Distributor (B2B)</option>
-                    <option value="INSTITUTIONAL">Hospital / Clinic / Nursing Home</option>
+                    <option value="B2B">Contractor / Tile Dealer / Trade Partner (B2B)</option>
+                    <option value="INSTITUTIONAL">Real Estate Developer / Architect / Commercial Project</option>
                   </select>
                 </div>
 
@@ -423,10 +423,10 @@ export const WholesaleCustomers: React.FC<WholesaleCustomersProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Drug License / Reg No.</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Builder / Trade Reg. No.</label>
                   <input
                     type="text"
-                    placeholder="DL-2026-WHO-001"
+                    placeholder="TR-2026-BLD-001"
                     value={formData.businessRegistration}
                     onChange={(e) => setFormData({ ...formData, businessRegistration: e.target.value })}
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500/20"

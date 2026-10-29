@@ -34,7 +34,7 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
   const [employeeId, setEmployeeId] = useState('');
-  const [selectedRoleId, setSelectedRoleId] = useState<SystemRoleId>('pharmacist');
+  const [selectedRoleId, setSelectedRoleId] = useState<SystemRoleId>('sales_staff');
   const [allStoresAccess, setAllStoresAccess] = useState(true);
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
 
@@ -46,7 +46,7 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({
       setDisplayName(staff.displayName || '');
       setPhone(staff.phone || '');
       setEmployeeId(staff.employeeId || '');
-      setSelectedRoleId((staff.roleId as SystemRoleId) || 'pharmacist');
+      setSelectedRoleId((staff.roleId as SystemRoleId) || 'sales_staff');
       setAllStoresAccess(staff.allStoresAccess ?? false);
       setSelectedStoreIds(Array.isArray(staff.storeIds) ? staff.storeIds : []);
       setErrorMsg(null);
@@ -70,7 +70,7 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({
     setErrorMsg(null);
 
     if (!organization?.id || !currentStaff) {
-      setErrorMsg('Active pharmacy session not resolved.');
+      setErrorMsg('Active workspace session not resolved.');
       return;
     }
 

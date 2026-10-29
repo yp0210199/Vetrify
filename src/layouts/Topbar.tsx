@@ -61,7 +61,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             className="w-full flex items-center justify-between px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] hover:border-[#94A3B8] rounded-xl text-xs text-[#64748B] transition-all cursor-pointer shadow-2xs group"
           >
             <div className="flex items-center gap-2 overflow-hidden">
-              <Search className="w-4 h-4 text-[#0D5C63] group-hover:scale-105 transition-transform flex-shrink-0" />
+              <Search className="w-4 h-4 text-[#0066FF] group-hover:scale-105 transition-transform flex-shrink-0" />
               <span className="truncate text-[11px] sm:text-xs">
                 Search tiles, sanitaryware, lots...
               </span>
@@ -82,7 +82,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           title={`Switch Branch: ${currentStore.name}`}
           className="hidden md:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-xs font-semibold text-[#0B1F33] transition-colors cursor-pointer"
         >
-          <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0D5C63] flex-shrink-0" />
+          <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0066FF] flex-shrink-0" />
           <span className="max-w-[120px] lg:max-w-[160px] truncate text-xs">
             {currentStore.name}
           </span>
@@ -91,7 +91,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         {/* Date Widget (Desktop only) */}
         <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs font-semibold text-[#475569]">
-          <Calendar className="w-3.5 h-3.5 text-[#0D5C63]" />
+          <Calendar className="w-3.5 h-3.5 text-[#0066FF]" />
           <span>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
         </div>
 
@@ -99,7 +99,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         <button
           type="button"
           onClick={onOpenHelp}
-          className="p-2 text-[#475569] hover:text-[#0D5C63] hover:bg-[#E6F4F1] rounded-xl transition-colors cursor-pointer"
+          className="p-2 text-[#475569] hover:text-[#0066FF] hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
           title="Command Palette & System Help"
         >
           <HelpCircle className="w-4.5 h-4.5" />

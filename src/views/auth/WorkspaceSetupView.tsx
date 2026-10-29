@@ -61,13 +61,13 @@ export const WorkspaceSetupView: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<FormValidationErrors>({});
 
-  // Auto-sync primary store name when typing pharmacy name if untouched
+  // Auto-sync primary store name when typing business name if untouched
   const [hasManuallyEditedStoreName, setHasManuallyEditedStoreName] = useState(false);
 
   const handleOrgNameChange = (val: string) => {
     setOrgName(val);
     if (!hasManuallyEditedStoreName) {
-      setMainStoreName(val.trim() ? `${val.trim()} - Main Branch` : '');
+      setMainStoreName(val.trim() ? `${val.trim()} - Main Showroom` : '');
     }
     if (validationErrors.orgName) {
       setValidationErrors((prev) => ({ ...prev, orgName: undefined }));
@@ -79,9 +79,9 @@ export const WorkspaceSetupView: React.FC = () => {
 
     // 1. Required Fields
     if (!orgName.trim()) {
-      errors.orgName = 'Pharmacy / Business Name is required.';
+      errors.orgName = 'Business / Enterprise Name is required.';
     } else if (orgName.trim().length < 2) {
-      errors.orgName = 'Pharmacy name must be at least 2 characters.';
+      errors.orgName = 'Business name must be at least 2 characters.';
     }
 
     if (!mainStoreName.trim()) {
@@ -201,10 +201,10 @@ export const WorkspaceSetupView: React.FC = () => {
                   Tenant Setup &bull; Owner Bootstrap
                 </span>
                 <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                  Set up your pharmacy
+                  Set up your business workspace
                 </h1>
                 <p className="text-xs sm:text-sm text-[#CBD5E1] mt-1 font-medium leading-relaxed">
-                  Create your Vetrify workspace to start managing your operations.
+                  Create your Vetrify workspace to start managing your tiles, sanitaryware, and building materials operations.
                 </p>
               </div>
             </div>
@@ -247,21 +247,21 @@ export const WorkspaceSetupView: React.FC = () => {
             </div>
 
             <form onSubmit={handleSetupSubmit} className="space-y-6" noValidate>
-              {/* Section 1: Core Pharmacy & Store (Required) */}
+              {/* Section 1: Core Business & Showroom (Required) */}
               <div className="space-y-4">
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0D5C63] flex items-center gap-1.5">
+                <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0066FF] flex items-center gap-1.5">
                   <Store className="w-4 h-4" />
-                  <span>Primary Pharmacy Details</span>
+                  <span>Primary Business & Showroom Details</span>
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Pharmacy / Business Name */}
+                  {/* Business / Showroom Name */}
                   <div className="sm:col-span-2">
                     <label
                       htmlFor="rx-setup-org-name"
                       className="block text-xs font-bold text-[#0B1F33] mb-1.5"
                     >
-                      Pharmacy / Business Name <span className="text-[#EF4444]">*</span>
+                      Business / Showroom Name <span className="text-[#EF4444]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B]">
@@ -479,26 +479,26 @@ export const WorkspaceSetupView: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Drug License Number */}
+                    {/* Trade / MSME Reg Number */}
                     <div>
                       <label
-                        htmlFor="rx-setup-drug-license"
+                        htmlFor="setup-trade-license"
                         className="block text-xs font-bold text-[#0B1F33] mb-1.5"
                       >
-                        Drug License No. (Form 20B/21B)
+                        Trade / MSME Registration No.
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B]">
                           <FileBadge2 className="w-4 h-4" />
                         </div>
                         <input
-                          id="rx-setup-drug-license"
+                          id="setup-trade-license"
                           type="text"
-                          placeholder="e.g. DL-20B-12345/21B-67890"
+                          placeholder="e.g. TR-2024-12345 / MSME-UDYAM"
                           value={drugLicenseNumber}
                           onChange={(e) => setDrugLicenseNumber(e.target.value)}
                           disabled={isBusy}
-                          className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-xl border border-[#CBD5E1] focus:border-[#0D5C63] focus:ring-2 focus:ring-[#0D5C63]/20 text-sm font-medium outline-none bg-white"
+                          className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-xl border border-[#CBD5E1] focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 text-sm font-medium outline-none bg-white"
                         />
                       </div>
                     </div>
@@ -558,7 +558,7 @@ export const WorkspaceSetupView: React.FC = () => {
                         <input
                           id="rx-setup-email"
                           type="email"
-                          placeholder="contact@pharmacy.com"
+                          placeholder="contact@vetrify.internal"
                           value={email}
                           onChange={(e) => {
                             setEmail(e.target.value);
@@ -668,24 +668,24 @@ export const WorkspaceSetupView: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-[#E2E8F0]">
                 <div className="text-xs text-[#64748B] flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-[#2FA36A] flex-shrink-0" />
-                  <span>Configures isolated pharmacy tenant database</span>
+                  <span>Configures isolated business tenant database</span>
                 </div>
 
                 <button
                   type="submit"
-                  id="rx-create-pharmacy-submit-button"
+                  id="vetrify-create-workspace-submit-button"
                   disabled={isBusy}
-                  className="w-full sm:w-auto min-h-[46px] px-8 py-2.5 rounded-xl bg-[#0D5C63] hover:bg-[#094348] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#0D5C63]/25 transition-all disabled:opacity-60 cursor-pointer"
+                  className="w-full sm:w-auto min-h-[46px] px-8 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#0066FF]/25 transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {isBusy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Provisioning Pharmacy Workspace...</span>
+                      <span>Provisioning Business Workspace...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 text-[#00E5FF]" />
-                      <span>Create Pharmacy</span>
+                      <span>Create Workspace</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}

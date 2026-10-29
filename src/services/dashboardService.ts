@@ -412,24 +412,24 @@ export const dashboardService = {
         if (activeProducts.length > 0) {
           activeProducts.slice(0, 5).forEach((prod, index) => {
             const simulatedQty = Math.max(8, 28 - index * 4);
-            const unitPrice = prod.defaultSalePrice || prod.defaultMrp || 120;
+            const unitPrice = prod.defaultSalePrice || prod.defaultMrp || 1450;
             topSellingMedicines.push({
               productId: prod.id,
               name: prod.productName,
-              dosage: prod.dosageForm || 'Tablet',
+              dosage: prod.surfaceFinish || prod.dosageForm || 'High Gloss',
               qtySold: simulatedQty,
               sales: unitPrice * simulatedQty,
               marginPercent: prod.minMarginPercent || 28,
               imageUrl: prod.imageUrl || prod.mediaUrl || (prod as any)?.photoUrl || '',
-              schedule: prod.schedule || 'OTC',
+              schedule: prod.tileGrade || prod.schedule || 'Premium',
             });
           });
         } else {
           topSellingMedicines.push(
-            { productId: 'fallback-1', name: 'Paracetamol 500mg (Crocin)', dosage: 'Tablet', qtySold: 24, sales: 720, marginPercent: 28, schedule: 'OTC', imageUrl: '' },
-            { productId: 'fallback-2', name: 'Pantoprazole 40mg (Pan-40)', dosage: 'Capsule', qtySold: 18, sales: 1620, marginPercent: 31, schedule: 'H', imageUrl: '' },
-            { productId: 'fallback-3', name: 'ORS Electrolyte Solution', dosage: 'Sachet', qtySold: 15, sales: 450, marginPercent: 25, schedule: 'OTC', imageUrl: '' },
-            { productId: 'fallback-4', name: 'Vitamin D3 60K (Shelcal)', dosage: 'Capsule', qtySold: 10, sales: 1200, marginPercent: 35, schedule: 'OTC', imageUrl: '' }
+            { productId: 'fallback-1', name: 'Royal Statuario Polished GVT 600x1200mm', dosage: 'High Gloss', qtySold: 45, sales: 65250, marginPercent: 32, schedule: 'Premium', imageUrl: '' },
+            { productId: 'fallback-2', name: 'Armani Grey Silk Matt Porcelain 800x1600mm', dosage: 'Silk Matt', qtySold: 28, sales: 68600, marginPercent: 35, schedule: 'Premium', imageUrl: '' },
+            { productId: 'fallback-3', name: 'Catalano Wall-Hung Rimless Water Closet', dosage: 'Glossy White', qtySold: 12, sales: 42000, marginPercent: 28, schedule: 'Standard', imageUrl: '' },
+            { productId: 'fallback-4', name: 'Grohe Eurosmart Single Lever Basin Mixer', dosage: 'Chrome Brass', qtySold: 16, sales: 38400, marginPercent: 30, schedule: 'Premium', imageUrl: '' }
           );
         }
       }

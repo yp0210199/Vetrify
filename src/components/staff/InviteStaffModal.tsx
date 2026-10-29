@@ -44,7 +44,7 @@ export const InviteStaffModal: React.FC<InviteStaffModalProps> = ({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [employeeId, setEmployeeId] = useState('');
-  const [selectedRoleId, setSelectedRoleId] = useState<SystemRoleId>('pharmacist');
+  const [selectedRoleId, setSelectedRoleId] = useState<SystemRoleId>('sales_staff');
   const [allStoresAccess, setAllStoresAccess] = useState(true);
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
 
@@ -59,7 +59,7 @@ export const InviteStaffModal: React.FC<InviteStaffModalProps> = ({
     setEmail('');
     setPhone('');
     setEmployeeId('');
-    setSelectedRoleId(assignableRoles[0]?.id || 'pharmacist');
+    setSelectedRoleId(assignableRoles[0]?.id || 'sales_staff');
     setAllStoresAccess(true);
     setSelectedStoreIds(stores.length > 0 ? [stores[0].id] : []);
     setCreatedInvite(null);
@@ -84,7 +84,7 @@ export const InviteStaffModal: React.FC<InviteStaffModalProps> = ({
     setErrorMsg(null);
 
     if (!organization?.id || !currentStaff) {
-      setErrorMsg('Active pharmacy session not resolved.');
+      setErrorMsg('Active workspace session not resolved.');
       return;
     }
 
@@ -100,7 +100,7 @@ export const InviteStaffModal: React.FC<InviteStaffModalProps> = ({
     }
 
     if (!allStoresAccess && selectedStoreIds.length === 0) {
-      setErrorMsg('Please select at least one pharmacy store branch for this staff member.');
+      setErrorMsg('Please select at least one showroom or godown branch for this staff member.');
       return;
     }
 
@@ -159,7 +159,7 @@ export const InviteStaffModal: React.FC<InviteStaffModalProps> = ({
       subtitle={
         createdInvite
           ? 'Secure activation link ready to share with team member'
-          : `Add a team member to ${organization?.name || 'Pharmacy'}`
+          : `Add a team member to ${organization?.name || 'Workspace'}`
       }
       size={createdInvite ? 'md' : 'lg'}
     >

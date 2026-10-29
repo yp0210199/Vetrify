@@ -29,7 +29,7 @@ export const globalSearchService = {
     // Parallel search routines for each core domain to respect Firestore boundaries.
     const searchTasks: Promise<void>[] = [];
 
-    // --- 1. Products (Medicines & SKUs) ---
+    // --- 1. Products (Tiles, Sanitaryware, Faucets & SKUs) ---
     if (categoryFilter === 'all' || categoryFilter === 'products') {
       searchTasks.push(
         (async () => {

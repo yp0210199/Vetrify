@@ -87,7 +87,9 @@ export const StaffManagementView: React.FC = () => {
       case 'owner': return 'bg-[#0B1F33] text-white border-[#1E3A5F]';
       case 'admin': return 'bg-[#0D5C63] text-white border-[#0D5C63]';
       case 'manager': return 'bg-[#7C3AED]/10 text-[#6D28D9] border-[#DDD6FE]';
+      case 'sales_staff':
       case 'pharmacist': return 'bg-[#15803D]/10 text-[#15803D] border-[#BBF7D0]';
+      case 'godown_supervisor': return 'bg-[#0066FF]/10 text-[#0066FF] border-[#99C2FF]';
       case 'cashier': return 'bg-[#D97706]/10 text-[#B45309] border-[#FDE68A]';
       default: return 'bg-[#64748B]/10 text-[#475569] border-[#CBD5E1]';
     }
@@ -99,11 +101,11 @@ export const StaffManagementView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
         <div>
           <h2 className="text-lg font-bold text-[#0B1F33] flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#0D5C63]" />
+            <Users className="w-5 h-5 text-[#0066FF]" />
             Staff & Role Management
           </h2>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Manage your pharmacy workforce, configure role hierarchies, and grant store-specific permissions.
+            Manage your showroom & godown team, configure role hierarchies, and grant store-specific permissions.
           </p>
         </div>
         

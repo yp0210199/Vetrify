@@ -2,23 +2,57 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var realFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var activeFetch = realFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return activeFetch;
+            },
+            set: function(val) {
+              activeFetch = val;
+            },
+            configurable: true,
+            enumerable: true
+          });
+          if (window.Window && window.Window.prototype) {
+            try {
+              Object.defineProperty(window.Window.prototype, 'fetch', {
+                get: function() {
+                  return activeFetch;
+                },
+                set: function(val) {
+                  activeFetch = val;
+                },
+                configurable: true,
+                enumerable: true
+              });
+            } catch (_) {}
+          }
+        } catch (_) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Vetrify — Billing, Inventory & E-commerce</title>
-    <meta name="description" content="Vetrify - Billing, Inventory & E-commerce. Everything Connected." />
+    <title>Vetrify — All-in-One Business Software</title>
+    <meta name="description" content="Vetrify - All-in-One Billing, Inventory & E-commerce Software for Tiles & Slabs, Sanitaryware, Faucets & CP, Tile Adhesives and General Business." />
     <link rel="canonical" href="https://vetrify.vercel.app" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://vetrify.vercel.app" />
-    <meta property="og:title" content="Vetrify — Billing, Inventory & E-commerce" />
-    <meta property="og:description" content="Vetrify: Smart Billing, Inventory & E-commerce Platform. Everything Connected." />
+    <meta property="og:title" content="Vetrify — All-in-One Business Software" />
+    <meta property="og:description" content="Vetrify: All-in-One Billing, Inventory & E-commerce Software for Tiles, Sanitaryware, Faucets & CP, and Construction Chemicals." />
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://vetrify.vercel.app" />
-    <meta property="twitter:title" content="Vetrify — Billing, Inventory & E-commerce" />
+    <meta property="twitter:title" content="Vetrify — All-in-One Business Software" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/assets/aistudio/Vetrify_Icon_ba7d5726.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/assets/aistudio/Vetrify_Icon_ba7d5726.png">
   </head>
-  <body class="bg-[#F6F8FA] text-[#0B1F33] antialiased selection:bg-[#0D5C63]/20 selection:text-[#0D5C63] font-sans">
+  <body class="bg-[#F6F8FA] text-[#0B1F33] antialiased selection:bg-[#0066FF]/20 selection:text-[#0066FF] font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

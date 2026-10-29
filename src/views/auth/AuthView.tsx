@@ -210,9 +210,9 @@ export const AuthView: React.FC = () => {
                 <Boxes className="w-5 h-5 text-[#4ADE80]" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">Live Batch & Rack Management</h4>
+                <h4 className="text-xs font-bold text-white">Live Lot & Yard Bay Management</h4>
                 <p className="text-[11px] text-[#94A3B8] leading-tight mt-0.5">
-                  FEFO-guided dispensing, cold-chain monitoring, and auto reorder triggers.
+                  Lot & shade matching, caliber tracking, and godown reorder triggers.
                 </p>
               </div>
             </div>
@@ -222,9 +222,9 @@ export const AuthView: React.FC = () => {
                 <ReceiptText className="w-5 h-5 text-[#93C5FD]" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">Strict Compliance & Auditing</h4>
+                <h4 className="text-xs font-bold text-white">Statutory GST & E-Way Compliance</h4>
                 <p className="text-[11px] text-[#94A3B8] leading-tight mt-0.5">
-                  Automated Schedule H register and real-time multi-location sync.
+                  Automated HSN tax classifications, e-way bills, and multi-godown sync.
                 </p>
               </div>
             </div>
@@ -250,12 +250,12 @@ export const AuthView: React.FC = () => {
 
           {/* Top Form Header */}
           <div className="max-w-md w-full mx-auto">
-            {/* Mode Switcher Tabs (Sign In / Create Pharmacy) */}
+            {/* Mode Switcher Tabs (Sign In / Create Business Workspace) */}
             {mode !== 'forgot-password' && (
               <div className="mb-6 p-1 bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] grid grid-cols-2 gap-1">
                 <button
                   type="button"
-                  id="rx-tab-signin"
+                  id="vetrify-tab-signin"
                   onClick={() => switchMode('login')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     mode === 'login'
@@ -268,16 +268,16 @@ export const AuthView: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  id="rx-tab-create-pharmacy"
+                  id="vetrify-tab-create-workspace"
                   onClick={() => switchMode('signup')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     mode === 'signup'
-                      ? 'bg-[#0D5C63] text-white shadow-sm'
-                      : 'text-[#0D5C63] hover:text-[#094348]'
+                      ? 'bg-[#0066FF] text-white shadow-sm'
+                      : 'text-[#0066FF] hover:text-[#0052CC]'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#00E5FF]" />
-                  <span>Create Pharmacy</span>
+                  <span>Create Workspace</span>
                 </button>
               </div>
             )}
@@ -296,10 +296,10 @@ export const AuthView: React.FC = () => {
             {mode === 'signup' && (
               <div className="mb-6">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1F33] tracking-tight">
-                  Create Pharmacy Account
+                  Create Business Account
                 </h1>
                 <p className="text-sm text-[#64748B] mt-1.5 font-medium">
-                  Register your owner credentials to provision your new pharmacy workspace.
+                  Register your owner credentials to provision your new Vetrify workspace.
                 </p>
               </div>
             )}
@@ -474,26 +474,26 @@ export const AuthView: React.FC = () => {
                   )}
                 </button>
 
-                {/* Prominent Create Pharmacy Callout for New Users */}
+                {/* Prominent Create Business Workspace Callout for New Users */}
                 <div className="mt-6 pt-5 border-t border-[#E2E8F0] text-center">
                   <p className="text-xs text-[#64748B] mb-2.5 font-medium">
-                    New pharmacy owner or store manager?
+                    New business owner or showroom manager?
                   </p>
                   <button
                     type="button"
-                    id="rx-signin-create-pharmacy-btn"
+                    id="vetrify-signin-create-workspace-btn"
                     onClick={() => switchMode('signup')}
-                    className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-[#0D5C63] text-[#0D5C63] hover:bg-[#E6F4F1] font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-[#0066FF] text-[#0066FF] hover:bg-blue-50 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
-                    <Building2 className="w-4 h-4 text-[#0D5C63]" />
-                    <span>Create Pharmacy Workspace</span>
+                    <Building2 className="w-4 h-4 text-[#0066FF]" />
+                    <span>Create Business Workspace</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </form>
             )}
 
-            {/* CREATE PHARMACY / SIGN UP FORM */}
+            {/* CREATE WORKSPACE / SIGN UP FORM */}
             {mode === 'signup' && (
               <form onSubmit={handleSignUpSubmit} className="space-y-4" noValidate>
                 {/* Full Name */}
@@ -546,7 +546,7 @@ export const AuthView: React.FC = () => {
                       id="signup-email"
                       type="email"
                       autoComplete="email"
-                      placeholder="e.g. owner@pharmacy.com"
+                      placeholder="e.g. owner@vetrify.com"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -657,7 +657,7 @@ export const AuthView: React.FC = () => {
                   id="auth-submit-signup"
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full min-h-[48px] px-6 py-3 rounded-xl bg-[#0D5C63] hover:bg-[#094348] active:bg-[#073236] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0D5C63]/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
+                  className="w-full min-h-[48px] px-6 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] active:bg-[#004099] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0066FF]/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -667,7 +667,7 @@ export const AuthView: React.FC = () => {
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 text-[#00E5FF]" />
-                      <span>Create Account & Setup Pharmacy</span>
+                      <span>Create Account & Setup Workspace</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
