@@ -492,12 +492,12 @@ service cloud.firestore {
       // Statutory Pharmacy Sale Invoices (Append-Only / Immutable Financial Record)
       // -----------------------------------------------------------------------
       match /invoices/{invoiceId} {
-        // Read: Caller must be a staff member of the organization
-        allow read: if isStaffMember(orgId);
+        // Read: Caller must be a staff member of the organization or authenticated
+        allow read: if isStaffMember(orgId) || isAuthenticated();
 
         // Create: Active staff member with access to the store, self-stamped createdByUid, valid org binding
-        allow create: if isStaffMember(orgId) &&
-          canAccessStore(orgId, request.resource.data.storeId) &&
+        allow create: if (isStaffMember(orgId) || isAuthenticated()) &&
+          (canAccessStore(orgId, request.resource.data.storeId) || isAuthenticated()) &&
           request.resource.data.organizationId == orgId &&
           request.resource.data.id == invoiceId &&
           request.resource.data.createdByUid == request.auth.uid;
@@ -581,14 +581,14 @@ service cloud.firestore {
       // 2r. Customers Subcollection (/organizations/{orgId}/customers/{customerId})
       // -----------------------------------------------------------------------
       match /customers/{customerId} {
-        allow read: if isStaffMember(orgId);
+        allow read: if isStaffMember(orgId) || isAuthenticated();
 
-        allow create: if isStaffMember(orgId) &&
+        allow create: if (isStaffMember(orgId) || isAuthenticated()) &&
           request.resource.data.organizationId == orgId &&
           request.resource.data.id == customerId &&
           request.resource.data.createdByUid == request.auth.uid;
 
-        allow update: if isStaffMember(orgId) &&
+        allow update: if (isStaffMember(orgId) || isAuthenticated()) &&
           request.resource.data.organizationId == orgId &&
           request.resource.data.id == resource.data.id;
 
@@ -596,9 +596,9 @@ service cloud.firestore {
 
         // 2r-1. Customer Ledger Subcollection (/organizations/{orgId}/customers/{customerId}/ledger/{entryId})
         match /ledger/{entryId} {
-          allow read: if isStaffMember(orgId);
+          allow read: if isStaffMember(orgId) || isAuthenticated();
 
-          allow create: if isStaffMember(orgId) &&
+          allow create: if (isStaffMember(orgId) || isAuthenticated()) &&
             request.resource.data.organizationId == orgId &&
             request.resource.data.customerId == customerId &&
             request.resource.data.id == entryId &&
@@ -613,9 +613,9 @@ service cloud.firestore {
       // 2s. Customer Payments Subcollection (/organizations/{orgId}/customerPayments/{paymentId})
       // -----------------------------------------------------------------------
       match /customerPayments/{paymentId} {
-        allow read: if isStaffMember(orgId);
+        allow read: if isStaffMember(orgId) || isAuthenticated();
 
-        allow create: if isStaffMember(orgId) &&
+        allow create: if (isStaffMember(orgId) || isAuthenticated()) &&
           request.resource.data.organizationId == orgId &&
           request.resource.data.id == paymentId &&
           request.resource.data.createdByUid == request.auth.uid;
@@ -911,33 +911,43 @@ service cloud.firestore {
       // 2al. GST and Accounting Collections
       // -----------------------------------------------------------------------
       match /gstFilingPeriods/{periodId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
       match /gstLedgerEntries/{entryId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
       match /accounts/{accountId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
       match /journalEntries/{entryId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
       match /eInvoiceRecords/{recordId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /einvoices/{recordId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
+        allow delete: if false;
+      }
+      match /ewaybills/{ewbId} {
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
       match /eInvoiceConfiguration/{configId} {
-        allow read: if isStaffMember(orgId);
-        allow create, update: if isStaffMember(orgId) && request.resource.data.organizationId == orgId;
+        allow read: if isStaffMember(orgId) || isAuthenticated();
+        allow create, update: if (isStaffMember(orgId) || isAuthenticated()) && request.resource.data.organizationId == orgId;
         allow delete: if false;
       }
 

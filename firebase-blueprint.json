@@ -439,6 +439,18 @@
       "schema": "StockTransferRequest",
       "description": "Inter-store stock transfer requests and movement tracking"
     },
+    "/organizations/{orgId}/einvoices/{einvId}": {
+      "schema": "SaleInvoice",
+      "description": "Government statutory B2B IRN e-invoices with signed QR payloads"
+    },
+    "/organizations/{orgId}/ewaybills/{ewbId}": {
+      "schema": "SaleInvoice",
+      "description": "Statutory ceramic logistics E-Way bills and vehicle transit authorizations"
+    },
+    "/organizations/{orgId}/eInvoiceConfiguration/{configId}": {
+      "schema": "Organization",
+      "description": "NIC/ClearTax IRP portal API credentials and automation settings"
+    },
     "/test/{testId}": {
       "schema": "User",
       "description": "Connection health test documents"

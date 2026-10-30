@@ -18,6 +18,8 @@ import { SettingsView } from './views/settings/SettingsView';
 import { NotificationsCenter } from './views/NotificationsCenter';
 import { ReplenishmentView } from './views/ReplenishmentView';
 import { EInvoiceSettingsView } from './views/EInvoiceSettingsView';
+import { CollectionsReceivablesView } from './views/CollectionsReceivablesView';
+import { TileAnalyticsReportsView } from './views/TileAnalyticsReportsView';
 import { EcommerceModuleView } from './views/EcommerceModuleView';
 import { TasksWorkspaceView } from './views/TasksWorkspaceView';
 import { AuditCentreView } from './views/AuditCentreView';
@@ -198,6 +200,10 @@ function AuthenticatedAppShell() {
         return <NotificationsCenter onNavigateToModule={handleSelectModule} />;
       case 'gst_accounts':
         return <EInvoiceSettingsView />;
+      case 'collections':
+        return <CollectionsReceivablesView />;
+      case 'reports':
+        return <TileAnalyticsReportsView />;
       case 'ecommerce':
         return <EcommerceModuleView />;
       case 'tasks':
@@ -390,9 +396,9 @@ function AuthenticatedAppShell() {
               items: [
                 { id: 'customers', label: 'Customers (Khata)', desc: 'Builder & customer credit ledgers', icon: Users, badge: 'Khata' },
                 { id: 'suppliers', label: 'Suppliers Master', desc: 'Manufacturer & distributor directory', icon: Building2 },
-                { id: 'collections', label: 'Collections', desc: 'Outstanding dues & receipts', icon: Wallet, phase: 2 },
-                { id: 'gst_accounts', label: 'GST & Ledgers', desc: 'GSTR-1, HSN tax summary & ledgers', icon: ReceiptText },
-                { id: 'reports', label: 'Reports & Analytics', desc: 'Sales, margins & dead stock BI', icon: BarChart3, phase: 2 },
+                { id: 'collections', label: 'Collections Aging', desc: 'FIFO aging buckets & builder receipts', icon: Wallet, badge: 'Aging' },
+                { id: 'gst_accounts', label: 'GST & E-Invoicing', desc: 'IRN generation, QR code & E-Way bills', icon: ReceiptText, badge: 'IRN' },
+                { id: 'reports', label: 'Tile Analytics & P&L', desc: 'Financial summaries, sq.ft & shade velocity', icon: BarChart3, badge: 'P&L' },
               ],
             },
             {

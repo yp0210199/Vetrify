@@ -107,3 +107,27 @@ export interface HSNSummary {
   igst: number;
   cess: number;
 }
+
+export interface EWayBillRecord {
+  id: string;
+  organizationId: string;
+  storeId?: string;
+  irn?: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  ewayBillNumber: string;
+  ewayBillDate: string;
+  validUpto: string;
+  vehicleNumber: string;
+  vehicleType: 'REGULAR' | 'ODC';
+  transporterId?: string;
+  transporterName?: string;
+  distanceKm: number;
+  supplyType: GSTSupplyType;
+  fromPincode: string;
+  toPincode: string;
+  status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED';
+  generatedByUid: string;
+  createdAt: Timestamp;
+}
+
